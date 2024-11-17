@@ -1,0 +1,70 @@
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
+    id 'kotlin-kapt'
+    id 'androidx.navigation.safeargs'
+
+
+}
+
+android {
+    namespace 'nishkaaminnovations.com.likhosmart'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "nishkaaminnovations.com.likhosmart"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    viewBinding {
+        enabled = true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    implementation libs.androidx.activity
+    implementation libs.androidx.constraintlayout
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
+    implementation libs.material
+    def room_version = "2.6.1"
+    implementation libs.androidx.room.runtime
+    kapt "androidx.room:room-compiler:$room_version"
+    implementation libs.androidx.room.ktx
+    implementation libs.kotlinx.coroutines.android // Check for the latest version
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.0" // Check for the latest version
+    // For LiveData
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.6.1" // Use the latest version
+
+    // For ViewModel
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1" // Use the latest version
+
+    def nav_version = "2.7.3" // use the latest version available
+
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+
+}

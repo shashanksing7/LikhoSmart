@@ -1,0 +1,422 @@
+<nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.CustomLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".WorkShop.WorkShop"
+    android:background="@color/light_lavender"
+    android:id="@+id/parent_layout">
+
+
+ <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="54dp"
+     android:layout_gravity="bottom"
+     android:orientation="horizontal"
+     android:gravity="center"
+     android:background="@color/white"
+     android:visibility="gone">
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center"
+      >
+
+   <androidx.appcompat.widget.AppCompatImageButton
+       android:id="@+id/copyButton"
+       android:layout_width="20dp"
+       android:layout_height="20dp"
+       android:src="@drawable/copy_1_svgrepo_com"
+       style="@style/WorkShopEditImageButtons"
+
+        />
+
+   <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Copy"
+       android:textSize="12sp"
+       android:gravity="center"
+       android:textColor="@color/black"
+       android:layout_marginBottom="8dp"/>
+  </LinearLayout>
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center">
+
+   <androidx.appcompat.widget.AppCompatImageButton
+       android:id="@+id/pasteButton"
+       android:layout_width="20dp"
+       android:layout_height="20dp"
+       android:src="@drawable/paste_svgrepo_com"
+       style="@style/WorkShopEditImageButtons"
+       />
+
+   <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Paste"
+       android:textSize="12sp"
+       android:gravity="center"
+       android:textColor="@color/black"
+       android:layout_marginBottom="8dp"/>
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center">
+
+   <androidx.appcompat.widget.AppCompatImageButton
+       android:id="@+id/deleteButton"
+       android:layout_width="20dp"
+       android:layout_height="20dp"
+       android:src="@drawable/delete_svgrepo_com"
+       style="@style/WorkShopEditImageButtons"
+        />
+
+   <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Delete"
+       android:textSize="12sp"
+       android:gravity="center"
+       android:textColor="@color/black"
+       android:layout_marginBottom="8dp"/>
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center">
+
+   <androidx.appcompat.widget.AppCompatImageButton
+       android:id="@+id/belowlinkButton"
+       android:layout_width="20dp"
+       android:layout_height="20dp"
+       android:src="@drawable/hyperlink_svgrepo_com"
+       style="@style/WorkShopEditImageButtons"
+        />
+
+   <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Link"
+       android:textSize="12sp"
+       android:gravity="center"
+       android:textColor="@color/black"
+       android:layout_marginBottom="8dp"/>
+  </LinearLayout>
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center">
+
+   <androidx.appcompat.widget.AppCompatImageButton
+       android:id="@+id/belowlockButton"
+       android:layout_width="20dp"
+       android:layout_height="20dp"
+       android:src="@drawable/lock_svgrepo_com"
+       style="@style/WorkShopEditImageButtons"
+        />
+
+   <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Lock"
+       android:textSize="12sp"
+       android:gravity="center"
+       android:textColor="@color/black"
+       android:layout_marginBottom="8dp"/>
+  </LinearLayout>
+
+
+ </LinearLayout>
+ <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="horizontal"
+     android:layout_gravity="bottom"
+     android:background="@color/muted_lavender"
+     android:gravity="center"
+
+     >
+
+  <!-- Text Button Layout -->
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center">
+
+   <androidx.appcompat.widget.AppCompatImageButton
+       android:id="@+id/textButton"
+       android:layout_width="20dp"
+       android:layout_height="20dp"
+       android:src="@drawable/letter_t_svgrepo_com"
+       android:padding="2dp"
+       style="@style/WorkShopImageButtons"
+       android:tint="@color/workshopbuttonsbg" />
+
+   <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Text"
+       android:textSize="12sp"
+       android:gravity="center"
+       android:textColor="@color/black"
+       android:layout_marginBottom="8dp"/>
+  </LinearLayout>
+
+  <!-- Draw Button Layout -->
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center">
+
+   <androidx.appcompat.widget.AppCompatImageButton
+       android:id="@+id/drawButton"
+       android:layout_width="20dp"
+       android:layout_height="20dp"
+       android:src="@drawable/paint_brush_solid_svgrepo_com"
+       style="@style/WorkShopImageButtons"
+       android:tint="@color/workshopbuttonsbg" />
+
+   <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Draw"
+       android:textSize="12sp"
+       android:gravity="center"
+       android:textColor="@color/black"
+       android:layout_marginBottom="8dp"/>
+  </LinearLayout>
+
+  <!-- Shape Button Layout -->
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center">
+
+   <androidx.appcompat.widget.AppCompatImageButton
+       android:id="@+id/shapeButton"
+       android:layout_width="20dp"
+       android:layout_height="20dp"
+       android:src="@drawable/sh21"
+       style="@style/WorkShopImageButtons"
+       android:tint="@color/workshopbuttonsbg" />
+
+   <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Shape"
+       android:textSize="12sp"
+       android:gravity="center"
+       android:textColor="@color/black"
+       android:layout_marginBottom="8dp"/>
+  </LinearLayout>
+
+  <!-- Audio Button Layout -->
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center">
+
+   <androidx.appcompat.widget.AppCompatImageButton
+       android:id="@+id/audioButton"
+       android:layout_width="20dp"
+       android:layout_height="20dp"
+       android:src="@drawable/m2"
+       style="@style/WorkShopImageButtons"
+       android:tint="@color/workshopbuttonsbg" />
+
+   <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Audio"
+       android:textSize="12sp"
+       android:gravity="center"
+       android:textColor="@color/black"
+       android:layout_marginBottom="8dp"/>
+  </LinearLayout>
+
+  <!-- Image Button Layout -->
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center">
+
+   <androidx.appcompat.widget.AppCompatImageButton
+       android:id="@+id/imageButton"
+       android:layout_width="20dp"
+       android:layout_height="20dp"
+       android:src="@drawable/photo_svgrepo_com"
+       style="@style/WorkShopImageButtons"
+       android:tint="@color/workshopbuttonsbg"
+       />
+
+   <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Image"
+       android:textSize="12sp"
+       android:gravity="center"
+       android:textColor="@color/black"
+       android:layout_marginBottom="8dp"/>
+  </LinearLayout>
+
+  <!-- Lasso Button Layout -->
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center">
+
+   <androidx.appcompat.widget.AppCompatImageButton
+       android:id="@+id/lassoButton"
+       android:layout_width="20dp"
+       android:layout_height="20dp"
+       android:src="@drawable/lasso_tool_svgrepo_com_1_"
+       style="@style/WorkShopImageButtons"
+       android:tint="@color/workshopbuttonsbg" />
+
+   <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Lasso"
+       android:textSize="12sp"
+       android:gravity="center"
+       android:textColor="@color/black"
+       android:layout_marginBottom="8dp"/>
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center">
+
+   <androidx.appcompat.widget.AppCompatImageButton
+       android:id="@+id/lockButton"
+       android:layout_width="20dp"
+       android:layout_height="20dp"
+       android:src="@drawable/lock_svgrepo_com"
+       style="@style/WorkShopImageButtons"
+       android:tint="@color/workshopbuttonsbg" />
+
+   <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Lock"
+       android:textSize="12sp"
+       android:gravity="center"
+       android:textColor="@color/black"
+       android:layout_marginBottom="8dp"/>
+  </LinearLayout>
+
+ </LinearLayout>
+ <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_gravity="bottom"
+     android:layout_marginBottom="54dp"
+     android:background="@color/muted_lavender"
+    >
+  <HorizontalScrollView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+   <LinearLayout
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:orientation="horizontal">
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/fontButton"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        style="@style/WorkShopImageButtons"
+        android:src="@drawable/font_svgrepo_com"
+        android:layout_marginBottom="10dp"
+        android:tint="@color/texteditbuttoncolor"/>
+    <TextView
+        android:id="@+id/fontSizeButton"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:text="10"
+        android:textSize="18dp"
+        android:layout_marginHorizontal="18dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"/>
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/colorButton"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        style="@style/WorkShopImageButtons"
+        android:src="@drawable/paintoval"
+        android:layout_marginBottom="10dp"/>
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/boldButton"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        style="@style/WorkShopImageButtons"
+        android:src="@drawable/bold_svgrepo_com"
+        android:layout_marginBottom="10dp"
+        android:tint="@color/texteditbuttoncolor"/>
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/italicButton"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        style="@style/WorkShopImageButtons"
+        android:padding="2dp"
+        android:src="@drawable/italic_svgrepo_com"
+        android:layout_marginBottom="10dp"
+        android:tint="@color/texteditbuttoncolor"/>
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/underlineButton"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        style="@style/WorkShopImageButtons"
+        android:src="@drawable/underline_svgrepo_com"
+        android:layout_marginBottom="10dp"
+        android:tint="@color/texteditbuttoncolor"/>
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/strikeThroughButton"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        style="@style/WorkShopImageButtons"
+        android:src="@drawable/strike_through_svgrepo_com"
+        android:layout_marginBottom="10dp"
+        android:tint="@color/texteditbuttoncolor"/>
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/hyperlinkButton"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        style="@style/WorkShopImageButtons"
+        android:src="@drawable/hyperlink_svgrepo_com"
+        android:layout_marginBottom="10dp"
+        android:tint="@color/texteditbuttoncolor"/>
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/alingmentButton"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        style="@style/WorkShopImageButtons"
+        android:src="@drawable/left_alignment_svgrepo_com"
+        android:layout_marginBottom="10dp"
+        android:tint="@color/texteditbuttoncolor"/>
+
+   </LinearLayout>
+
+  </HorizontalScrollView>
+
+ </LinearLayout>
+
+
+</nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.CustomLayout>

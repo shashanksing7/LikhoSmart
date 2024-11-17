@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:id="@+id/documentsFragment"
+    android:icon="@drawable/baseline_file_copy_24"
+    android:title="Documents"
+    />
+    <item android:id="@+id/shared"
+        android:title="Shared"
+        android:icon="@drawable/sharedsvg"/>
+    <item android:id="@+id/userProfile"
+        android:title="Profile"
+        android:icon="@drawable/userprofile"/>
+
+</menu>

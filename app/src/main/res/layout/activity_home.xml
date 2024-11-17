@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".HomeScreen.HomeActivity"
+    android:orientation="vertical"
+    android:background="@color/light_lavender"
+    android:weightSum="1">
+
+
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragment_container"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/navgraph" />
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_gravity="bottom"
+        app:menu="@menu/menu"
+        app:itemIconSize="25dp"
+        app:itemPaddingBottom="10dp"
+        app:labelVisibilityMode="selected"
+        app:itemTextColor="@color/bottom_nav_view_bg"
+        app:itemIconTint="@color/bottom_nav_view_bg"
+        app:itemRippleColor="@color/soft_teal"
+        app:itemActiveIndicatorStyle="@style/CustomBottomNavActiveIndicator"
+        android:background="@color/white"
+       />
+
+</LinearLayout>

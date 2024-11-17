@@ -1,0 +1,48 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.LikhoSmart" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <item name="colorPrimary">@color/soft_teal</item>
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
+
+    <style name="Theme.LikhoSmart" parent="Base.Theme.LikhoSmart" />
+    <style name="CustomChip" parent="Widget.MaterialComponents.Chip.Entry">
+        <item name="chipBackgroundColor">@drawable/chip_background_selector</item>
+        <item name="chipStrokeColor">@color/dark_grayish_green</item>
+        <item name="chipIconTint">@color/dark_grayish_green</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipIconVisible">false</item>
+        <item name="checkedIconVisible">true</item>
+        <item name="checkedIconTint">@color/charcoal_black</item>
+        <item name="iconStartPadding">5dp</item>
+        <item name="rippleColor">@color/muted_gray</item>
+        <item name="closeIconVisible">false</item>
+        <item name="chipIconSize">20dp</item>
+
+    </style>
+
+        <style name="CustomBottomNavActiveIndicator" parent="Widget.MaterialComponents.BottomNavigationView">
+            <item name="indicatorColor">@color/soft_teal</item>
+        </style>
+    <style name="CustomDialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+    <style name="WorkShopImageButtons" parent="Widget.AppCompat.ImageButton">
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:layout_marginHorizontal">18dp</item>
+
+    </style>
+    <style name="WorkShopEditImageButtons" parent="Widget.AppCompat.ImageButton">
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:layout_marginHorizontal">25dp</item>
+
+    </style>
+
+
+</resources>
