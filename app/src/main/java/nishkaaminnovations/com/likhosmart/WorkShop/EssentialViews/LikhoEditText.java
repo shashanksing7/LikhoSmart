@@ -7,11 +7,25 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.PathEffect;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.text.Editable;
+import android.text.Html;
+import android.text.Layout;
+import android.text.Spannable;
 import android.text.TextWatcher;
+import android.text.style.AlignmentSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StrikethroughSpan;
+import android.text.style.StyleSpan;
+import android.text.style.TypefaceSpan;
+import android.text.style.URLSpan;
+import android.text.style.UnderlineSpan;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 
 import androidx.appcompat.widget.AppCompatEditText;
 
@@ -43,6 +57,23 @@ class LikhoEditText extends AppCompatEditText {
     private onChildViewClickListener onChildClickListener; // Listener for child view clicks
     private boolean isSecondTouch = false; // Flag for handling secondary touches
     private ViewUtility utility; // Helper utility for resizing and dragging logic
+    /*
+    Parent layout.
+     */
+    private CustomLayout layout;
+
+    /*
+    Variables to check if the user is deleting.
+     */
+    private boolean isDeleting = false; // Track if the user is deleting text
+    /*
+    Default text size for the Edit text.
+     */
+    private static final int DEFAULT_SIZE=10;
+    /*
+    Object of the   HtmlTagHandler class.
+     */
+    private HtmlTagHandler htmlTagHandler;
 
     public LikhoEditText(Context context) {
         super(context);
@@ -66,15 +97,20 @@ class LikhoEditText extends AppCompatEditText {
         if (!enabled) {
             isSecondTouch = false;
             utility = new ViewUtility(this);
+            htmlTagHandler= new HtmlTagHandler();
 
         } else {
             isSecondTouch = false;
             utility=null;
+            htmlTagHandler=null;
         }
     }
 
     private void init() {
+        // Set default text size in SP
+        setTextSize(TypedValue.COMPLEX_UNIT_SP,DEFAULT_SIZE);
         utility = new ViewUtility(this);
+        layout =(CustomLayout) getParent();
         // Set transparent background to remove the black outline
         setBackgroundColor(Color.TRANSPARENT);
 
@@ -98,16 +134,30 @@ class LikhoEditText extends AppCompatEditText {
 
         // Add text watcher for dynamic resizing
         this.post(() -> addTextChangedListener(new TextWatcher() {
+            private int start=0;
+            private int count=0;
+            private boolean isSpacePressed = false;
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                resize();
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                isDeleting = after < count;
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                this.start = start;
+                this.count = count;
+                isSpacePressed = count > 0 && s != null && s.charAt(start) == ' ';
+                resize();
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (!isDeleting && count > 0 && s != null && !isSpacePressed) {
+//                    applyTextStyles(s, start, count);
+                }
+                isSpacePressed = false;
+            }
         }));
 
         // Toggle circle visibility based on focus
@@ -226,7 +276,75 @@ class LikhoEditText extends AppCompatEditText {
 
         return super.onTouchEvent(event);
     }
+    /*
+    Method to Check and Apply text Styles.
+     */
+    private void applyTextStyles(int start, int count) {
+        Editable editableText = getText();
+        int end = start + count;
 
+        // Ensure indices are within valid range
+        if (start < 0 || end < 0 || start >= editableText.length() || end > editableText.length()) {
+            return;
+        }
+
+        // Apply styles only to the newly added text segment
+        if (layout.isBoldEnabledPublic()) {
+            editableText.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        if (layout.isItalicEnabledPublic()) {
+            editableText.setSpan(new StyleSpan(Typeface.ITALIC), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        if (layout.isUnderLineEnabledPublic()) {
+            editableText.setSpan(new UnderlineSpan(), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        if (layout.isStrikeThroughEnabledPublic()) {
+            editableText.setSpan(new StrikethroughSpan(), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        if (true) {
+            editableText.setSpan(new TypefaceSpan(layout.getFontFacePublic()), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        if (true) {
+            String colorString = layout.getFontColorPublic(); // Returns something like "#FF0000"
+            int color = Color.parseColor(colorString);
+            editableText.setSpan(new ForegroundColorSpan(color), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        if (layout.isURLEnabledPublic()) {
+            editableText.setSpan(new URLSpan(layout.getLinkTextPublic()), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        if (true) {
+            editableText.setSpan(new RelativeSizeSpan(layout.getFontSizePublic()), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        if (layout.isAlignmentEnabledPublic()) {
+            editableText.setSpan(new AlignmentSpan.Standard(Layout.Alignment.ALIGN_NORMAL), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+    }
+        /*
+    Method to save the editable object as an html
+     */
+    private void  saveUsingHtml(){
+           String html = Html.toHtml (getText(),Html.FROM_HTML_MODE_COMPACT);
+    }
+    /*
+    Method to extract th editable form html.
+     */
+    private void  getTextFromHTML(){
+
+        String html="to be initilaized";
+        setText(Html.fromHtml(prepareHTMLForTagHandling(html),Html.FROM_HTML_MODE_COMPACT,null,htmlTagHandler));
+
+    }
+     /*
+    Method to replace the tag with the custom tag for fontSize.
+     */
+     public String prepareHTMLForTagHandling(String htmlSource) {
+         if (htmlSource == null || htmlSource.isEmpty()) {
+             return null;
+         }
+         return htmlSource
+                 .replace("<span", "<fontsizetag")
+                 .replace("</span>", "</fontsizetag>");
+     }
     // Setter for child click listener
     public void setOnChildClickListener(onChildViewClickListener listener) {
         this.onChildClickListener = listener;

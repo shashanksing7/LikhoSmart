@@ -106,8 +106,8 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
     private var isUnderLineEnabled:Boolean=false
     private var isStrikeThroughEnabled:Boolean=false
     private var isAlignmentEnabled:Boolean=false
-    private var fontFace:String="Default"
-    private var fontSize:Int=10
+    private var fontFace:String="serif"
+    private var fontSize:Float=1.5f
     private var fontColor:String="#000000"
     private var isURLEnabled=false;
     private var linkText="Default"
@@ -172,7 +172,7 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
             ViewGroup.LayoutParams.MATCH_PARENT
         ) // Set default size
         addView(canvasView, layoutParams)
-        canvasView.isEnabled=false
+        canvasView.isEnabled=true
     }
     /*
     Method to show pop up at user desired location.
@@ -452,8 +452,67 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
     }
 
     /*
-    getter and setter method for text editing variable.
+    Getter and Setter.
      */
+    // Public getters and setters
+    var isBoldEnabledPublic: Boolean
+        get() = this.isBoldEnabled
+        set(value) {
+            this.isBoldEnabled = value
+        }
 
+    var isItalicEnabledPublic: Boolean
+        get() = this.isItalicEnabled
+        set(value) {
+            this.isItalicEnabled = value
+        }
+
+    var isUnderLineEnabledPublic: Boolean
+        get() = this.isUnderLineEnabled
+        set(value) {
+            this.isUnderLineEnabled = value
+        }
+
+    var isStrikeThroughEnabledPublic: Boolean
+        get() = this.isStrikeThroughEnabled
+        set(value) {
+            this.isStrikeThroughEnabled = value
+        }
+
+    var isAlignmentEnabledPublic: Boolean
+        get() = this.isAlignmentEnabled
+        set(value) {
+            this.isAlignmentEnabled = value
+        }
+
+    var fontFacePublic: String
+        get() = this.fontFace
+        set(value) {
+            this.fontFace = value
+        }
+
+    var fontSizePublic: Float
+        get() = this.fontSize
+        set(value) {
+            this.fontSize = value
+        }
+
+    var fontColorPublic: String
+        get() = this.fontColor
+        set(value) {
+            this.fontColor = value
+        }
+
+    var isURLEnabledPublic: Boolean
+        get() = this.isURLEnabled
+        set(value) {
+            this.isURLEnabled = value
+        }
+
+    var linkTextPublic: String
+        get() = this.linkText
+        set(value) {
+            this.linkText = value
+        }
 
 }

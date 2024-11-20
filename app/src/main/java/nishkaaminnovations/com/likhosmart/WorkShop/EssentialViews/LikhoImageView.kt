@@ -339,6 +339,7 @@ class LikhoImageView @JvmOverloads constructor(context: Context, attr:AttributeS
         }
         return true
     }
+
     // Setter for the interface listener
     fun setOnChildClickListener(listener: onChildViewClickListener) {
         this.onChildClickListener = listener
