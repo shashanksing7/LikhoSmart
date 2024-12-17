@@ -81,12 +81,12 @@ public class ViewUtility {
         int maxWidth = ((ViewGroup) view.getParent()).getWidth(); // or specify a constant value
         int maxHeight = ((ViewGroup) view.getParent()).getHeight(); // or specify a constant value
 
-        if(view instanceof  AppCompatEditText){
+        if(view instanceof  LikhoEditText){
             // Ensure newWidth and newHeight do not exceed max dimensions
         if (newWidth > maxWidth) newWidth = maxWidth;
         }
-        if (newHeight < 50) newHeight = 50; // Prevent collapsing
-        if (newWidth < 100) newWidth = 150; // Prevent collapsing
+        if (newHeight < 50) newHeight = 200; // Prevent collapsing
+        if (newWidth < 100) newWidth = 200; // Prevent collapsing
 
         ViewGroup.LayoutParams params = view.getLayoutParams();
         params.width = newWidth;
@@ -94,6 +94,7 @@ public class ViewUtility {
         view.setLayoutParams(params);
 
     }
+
     /*
        Method to check if the user tap lies in drag area or not.
     */

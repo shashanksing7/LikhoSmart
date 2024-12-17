@@ -32,13 +32,16 @@ methods to perform the operations on database.
    Method to extract specific doc
     */
    @Query("select * from docModel where name=:name")
-   suspend fun getDoc(name:String):docModel?
+  suspend fun getDoc(name:String):docModel?
         /*
      Method to get all the docs ordered by date.
       */
     @Query("select * from docModel order by createdDate ASC ")
     suspend fun getdocListByDate():List<docModel>
 
-
-
+    /*
+   Method to update the color of a specific document
+*/
+    @Query("UPDATE docModel SET color = :color WHERE name = :name")
+   suspend fun updateDocColor(name: String, color: String)
 }

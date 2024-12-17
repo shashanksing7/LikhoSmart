@@ -10,7 +10,7 @@ import androidx.room.TypeConverters
 this class represents the database that will be used to perform the operations on the
 room data base.it will return it's singleton object,and the objects of the DAO.
  */
-@Database(entities =[docModel::class], version = 1, exportSchema = true )
+@Database(entities =[docModel::class], version = 1)
 @TypeConverters(Converters::class)
 abstract class DocumentDataBase :RoomDatabase(){
     /*

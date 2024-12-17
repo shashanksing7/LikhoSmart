@@ -1,8 +1,17 @@
 package nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews
 
 import android.content.Context
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.DashPathEffect
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
+import android.text.Editable
 import android.util.AttributeSet
+import android.util.Log
 import android.view.GestureDetector
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -11,8 +20,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.PopupWindow
+import android.widget.TextView
 import androidx.appcompat.widget.AppCompatButton
 import nishkaaminnovations.com.likhosmart.R
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.CustomCanvasView.PenType
+import nishkaaminnovations.com.likhosmart.WorkShop.MusicPlayer.WaveformWithPlayPause
 
 class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?=null,defStyleAttr:Int=0): FrameLayout(context,attr,defStyleAttr),onChildViewClickListener {
     /*
@@ -89,7 +101,7 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
     Indicates whether a specific view type (e.g., IMAGE_VIEW, TEXT_VIEW) has been touched for the first time.
     Resets when switching view types.
      */
-    private var firstTouched:Boolean=false
+     var firstTouched:Boolean=false
     /*
     Variable to represent the selected view type.
      */
@@ -111,6 +123,24 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
     private var fontColor:String="#000000"
     private var isURLEnabled=false;
     private var linkText="Default"
+    /*
+    Variable to represent the current edit text.
+     */
+    private var currentEditext: LikhoEditText? = null
+    /*
+    Variable to represent the childSelectedListener
+     */
+    private  lateinit var childSelectedListener:childSelectedListener
+    /*
+    This variable is used represent the copied view.
+     */
+    private  var copiedView:View?=null
+    private var copiedViewLayoutParams:FrameLayout.LayoutParams?=null
+    private var clickedChildType=ViewType.NONE
+    /*
+    This variable represents if the drawing mode is on or not.
+     */
+    private var isDrawingOn:Boolean=false;
 
     /*
        Enum to represent the selected view type
@@ -119,12 +149,18 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
         CANVAS,
         IMAGE_VIEW,
         TEXT_VIEW,
+        AUDIO,
         NONE
      }
     /*
     Init block.
      */
     init{
+
+        /*
+        Initialising the pop up view
+         */
+        InitialiseButtonsAtLocation()
         // Initialize the GestureDetector with a custom listener
         gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onLongPress(event: MotionEvent) {
@@ -133,22 +169,57 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
                 val y = event.y
 
                 // Show buttons at this location
-//                showButtonsPopUpAtLocation(x, y)
+               showLongPressPopUp(x,y)
             }
         })
         addCanvasView()
-
     }
     /*
     Method to add canvas to the layout.
      */
-    override fun onViewClicked(view: View?) {
-        view?.isEnabled=true
-        disableAllOther(view!!)
-        oneChildEnabled = true
-        child = view
-        selectedViewType = ViewType.NONE
+    override fun onViewClicked(view: View?,viewType:ViewType,isLocked:Boolean,isChildSelected:Boolean,link:String,linkText:String,pathBottom:Float,pathRight:Float) {
+
+        /*
+        Using the if block because we need to call the getChild() listener even when the child is enabled
+         */
+        if(!view!!.isEnabled){
+            view?.isEnabled=true
+            disableAllOther(view!!)
+            oneChildEnabled = true
+            child = view
+            selectedViewType = ViewType.NONE
+            clickedChildType=viewType
+            childSelectedListener.getSelectedChild(viewType,true,isLocked)
+            Log.d("mytag", "onViewClicked: child"+viewType)
+            if(link!="noURL"){
+                showLinkPopup(view,link,linkText,pathBottom, pathRight)
+            }
+            if(child!=null&&viewType==ViewType.TEXT_VIEW){
+                currentEditext= child!! as LikhoEditText
+
+            }
+            Log.d("tagmy", "onViewClicked: if block")
+        }
+        else if(viewType==ViewType.CANVAS){
+            Log.d("tagmy", "onViewClicked: else block")
+            childSelectedListener.getSelectedChild(viewType,isChildSelected,isLocked)
+            clickedChildType=viewType
+            if(child!=null&&viewType==ViewType.TEXT_VIEW){
+                currentEditext= child!! as LikhoEditText
+            }
+            child = view
+            if((link!="noURL" )){
+                showLinkPopup(view,link,linkText,pathBottom, pathRight)
+            }
+        }
     }
+/*
+This method returns if the drawing mode in on or not
+ */
+    override fun isDrawingOn(): Boolean {
+        return isDrawingOn
+    }
+
     // Method to disable all child views except the specified one
     private fun disableAllOther(view: View) {
         for (i in 0 until childCount) {
@@ -172,14 +243,15 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
             ViewGroup.LayoutParams.MATCH_PARENT
         ) // Set default size
         addView(canvasView, layoutParams)
-        canvasView.isEnabled=true
+        canvasView.isEnabled=false
+        canvasView.setOnChildClickListener(this)
+        canvasView.getisReadingModeOn()
     }
     /*
     Method to show pop up at user desired location.
      */
-    private fun showButtonsAtLocation(x: Float, y: Float) {
+    private fun InitialiseButtonsAtLocation() {
         // Check if popupWindow already exists
-        if (popupWindow == null) {
             // Inflate your button layout
             val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             val popupView = inflater.inflate(R.layout.poputlayout, null)
@@ -204,7 +276,7 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
                 draw.setOnClickListener {
                     // Select Draw mode
                     selectedViewType = ViewType.CANVAS
-                    // updateViewInteractivity() // Uncomment this if needed
+                     updateViewInteractivity() // Uncomment this if needed
                     popupWindow?.dismiss()
                 }
 
@@ -222,28 +294,43 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
                     popupWindow?.dismiss()
                 }
             }
-        }
 
-        // Show the popup at the new location
+    }
+    /*
+    Show buttons at location method
+     */
+    private fun showLongPressPopUp(x:Float,y:Float){
         popupWindow?.showAtLocation(this, Gravity.NO_GRAVITY, x.toInt(), y.toInt())
     }
 
     /*
-    Method to update the child view interactivity.
-     */
+    Method to update the child view interactivity based on selected view type.
+*/
     private fun updateViewInteractivity() {
         // Loop through all child views and enable/disable them based on the selected view type
         for (i in 0 until childCount) {
             val child = getChildAt(i)
 
-            // Enable or disable views based on their type
-            when {
-                child is CustomCanvasView && selectedViewType == ViewType.CANVAS -> {
-                    child.isEnabled = true
-                    child.isClickable = true
+            // Enable or disable views based on their type and the selected view type
+            when (selectedViewType) {
+                ViewType.CANVAS -> {
+                    child.isEnabled = child is CustomCanvasView
+                    child.isClickable = child is CustomCanvasView
                 }
-                else -> {
-                    // Disable interaction for other views
+                ViewType.IMAGE_VIEW -> {
+                    child.isEnabled = child is LikhoImageView
+                    child.isClickable = child is LikhoImageView
+                }
+                ViewType.TEXT_VIEW -> {
+                    child.isEnabled = child is LikhoEditText
+                    child.isClickable = child is LikhoEditText
+                }
+                ViewType.AUDIO -> {
+                    child.isEnabled = child is WaveformWithPlayPause // Replace with your custom audio view class
+                    child.isClickable = child is WaveformWithPlayPause
+                }
+                ViewType.NONE -> {
+                    // Disable interaction for all views
                     child.isEnabled = false
                     child.isClickable = false
                 }
@@ -251,41 +338,47 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
         }
     }
 
+
     // Method to dynamically add an ImageView
-    private fun addImageView(x: Float, y: Float) {
+     fun addImageView(uri:Uri) {
         firstTouched = true
         // Create the ImageView (Replace with your custom class if needed)
         val imageView = LikhoImageView(context, null)
-
+        imageView.setUri(uri)
         imageView.setOnChildClickListener(this)
-        imageView.setImageResource(R.drawable.journal) // Set your image here
+        imageView.setImageURI(uri)
 
+//        val layoutParams = FrameLayout.LayoutParams(300, 300) // Set width and height to 300
         val layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         addView(imageView, layoutParams)
+        imageView.x = 100f
+        imageView.y = 100f
 
-        imageView.x = x
-        imageView.y = y // Set default size
 
         selectedViewType = ViewType.NONE
+        clickedChildType=ViewType.IMAGE_VIEW
         child = imageView
+        childSelectedListener.getSelectedChild(ViewType.IMAGE_VIEW,true,false)
     }
 
     // Method to dynamically add a TextView
-    private fun addTextView(x: Float, y: Float) {
+     fun addTextView(x: Float, y: Float):LikhoEditText {
         firstTouched = true
-        // Create the TextView (Replace with your custom class if needed)
+        // Create the TextView
         val textView = LikhoEditText(context)
-
+        textView.init(this)
         textView.setOnChildClickListener(this)
-        textView.setText("Dynamic text")
-
+        textView.hint="Dynamic Text"
         val layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         addView(textView, layoutParams)
-
         textView.x = x
         textView.y = y
         selectedViewType = ViewType.NONE
+        currentEditext=textView
         child = textView
+        clickedChildType=ViewType.TEXT_VIEW
+        childSelectedListener.getSelectedChild(ViewType.TEXT_VIEW,true,false)
+        return textView
     }
     override fun onTouchEvent(event: MotionEvent): Boolean {
         gestureDetector.onTouchEvent(event)
@@ -304,7 +397,7 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
                     ViewType.IMAGE_VIEW -> {
                         if (!firstTouched) {
                             isDraggable = false
-                            addImageView(touchX, touchY)
+//                            addImageView(touchX, touchY)
                         }
                     }
                     ViewType.TEXT_VIEW -> {
@@ -314,16 +407,28 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
                         }
                     }
                     ViewType.NONE -> {
+                        Log.d("mytag", "onTouchEvent:none ")
                         if (oneChildEnabled) {
                             child?.isEnabled = false
                             isDraggable = true
+                            childSelectedListener.getSelectedChild(ViewType.NONE,false,true)
+                            clickedChildType=ViewType.NONE
+                            popupWindow.dismiss()
+
                         } else {
                             child?.isEnabled = false
                             isDraggable = true
+                            childSelectedListener.getSelectedChild(ViewType.NONE,false,true)
+                            clickedChildType=ViewType.NONE
+                            popupWindow.dismiss()
+
                         }
                     }
 
                     ViewType.CANVAS -> TODO()
+                    else->{
+
+                    }
                 }
             }
 
@@ -455,64 +560,494 @@ class CustomLayout @JvmOverloads constructor(context: Context,attr:AttributeSet?
     Getter and Setter.
      */
     // Public getters and setters
-    var isBoldEnabledPublic: Boolean
-        get() = this.isBoldEnabled
-        set(value) {
-            this.isBoldEnabled = value
+    // Getter and Setter for isBoldEnabled
+    fun getIsBoldEnabled(): Boolean {
+        return isBoldEnabled
+    }
+
+    fun setIsBoldEnabled(value: Boolean) {
+        isBoldEnabled = value
+    }
+
+    // Getter and Setter for isItalicEnabled
+    fun getIsItalicEnabled(): Boolean {
+        return isItalicEnabled
+    }
+
+    fun setIsItalicEnabled(value: Boolean) {
+        isItalicEnabled = value
+    }
+
+    // Getter and Setter for isUnderLineEnabled
+    fun getIsUnderLineEnabled(): Boolean {
+        return isUnderLineEnabled
+    }
+
+    fun setIsUnderLineEnabled(value: Boolean) {
+        isUnderLineEnabled = value
+    }
+
+    // Getter and Setter for isStrikeThroughEnabled
+    fun getIsStrikeThroughEnabled(): Boolean {
+        return isStrikeThroughEnabled
+    }
+
+    fun setIsStrikeThroughEnabled(value: Boolean) {
+        isStrikeThroughEnabled = value
+    }
+
+    // Getter and Setter for isAlignmentEnabled
+    fun getIsAlignmentEnabled(): Boolean {
+        return isAlignmentEnabled
+    }
+
+    fun setIsAlignmentEnabled(value: Boolean) {
+        isAlignmentEnabled = value
+    }
+
+    // Getter and Setter for fontFace
+    fun getFontFace(): String {
+        return fontFace
+    }
+
+    fun setFontFace(value: String) {
+        fontFace = value
+    }
+
+    // Getter and Setter for fontSize
+    fun getFontSize(): Float {
+        return fontSize
+    }
+
+    fun setFontSize(value: Float) {
+        fontSize = value
+    }
+
+    // Getter and Setter for fontColor
+    fun getFontColor(): String {
+        return fontColor
+    }
+
+    fun setFontColor(value: String) {
+        fontColor = value
+    }
+
+    // Getter and Setter for isURLEnabled
+    fun getIsURLEnabled(): Boolean {
+        return isURLEnabled
+    }
+
+    fun setIsURLEnabled(value: Boolean) {
+        isURLEnabled = value
+    }
+
+    // Getter and Setter for linkText
+    fun getLinkText(): String {
+        return linkText
+    }
+
+    fun setLinkText(value: String) {
+        linkText = value
+    }
+
+    /*
+    Method to set the brushes of the canvas.
+     */
+    fun setBrushToErase(strokeWidth: Float) {
+        Log.d("mytag", "layout eraser: ")
+        canvasView.apply {
+            setStrokeWidth(strokeWidth)
+            setXfermode(PorterDuffXfermode(PorterDuff.Mode.CLEAR)) // Clear mode for erasing
+            setColor(Color.TRANSPARENT) // Transparent color isn't mandatory here but aligns intent
+            setStrokeStyle(Paint.Style.STROKE) // Ensure the paint style matches your drawing
+            setAlpha(255) // Full effect (CLEAR mode handles transparency separately)
+            invalidate() // Redraw after setting up eraser
+        }
+        canvasView.setLaserOn(false)
+        canvasView.setEraserOn(true)
+        Log.d("mytag", "latout: "+canvasView.isEraserOn())
+
+    }
+
+    fun setBrushToDashed(strokeWidth:Float,color:Int) {
+        canvasView.setColor(color)       // Default color for normal brush
+        canvasView.setStrokeWidth(strokeWidth)           // Standard stroke width
+        canvasView.setStrokeStyle(Paint.Style.STROKE) // Stroke style
+        canvasView.setAlpha(255)               // Full opacity
+        canvasView.setPathEffect(DashPathEffect(floatArrayOf(10f, 10f), 0f))  // Dashed line effect
+        canvasView.setShader(null)             // No gradient or pattern
+        canvasView.setCap(Paint.Cap.ROUND)     // Rounded end for dashed line
+        canvasView.setJoin(Paint.Join.MITER)   // Mitered join for dashed line
+        canvasView.setXfermode(null)           // Normal blending mode
+        canvasView.setLaserOn(false)
+        canvasView.setEraserOn(false)
+    }
+
+    fun setBrushToHighlighter(strokeWidth:Float,color:Int) {
+        canvasView.setColor(color)       // Default color for normal brush
+        canvasView.setStrokeWidth(strokeWidth)          // Standard stroke width
+        canvasView.setStrokeStyle(Paint.Style.STROKE) // Stroke style
+        canvasView.setAlpha(80)               // Full opacity
+        canvasView.setPathEffect(null)         // No dashed effect
+        canvasView.setShader(null)             // No gradient or pattern
+        canvasView.setCap(Paint.Cap.ROUND)     // Rounded end for normal brush
+        canvasView.setJoin(Paint.Join.ROUND)   // Rounded join for normal brush
+        canvasView.setXfermode(null)           // Normal blending mode
+        canvasView.setLaserOn(false)
+        canvasView.setEraserOn(false)
+    }
+
+    fun setBrushToNormal(strokeWidth:Float,color:Int) {
+        canvasView.setColor(color)       // Default color for normal brush
+        canvasView.setStrokeWidth(strokeWidth)          // Standard stroke width
+        canvasView.setStrokeStyle(Paint.Style.STROKE) // Stroke style
+        canvasView.setAlpha(255)               // Full opacity
+        canvasView.setPathEffect(null)         // No dashed effect
+        canvasView.setShader(null)             // No gradient or pattern
+        canvasView.setCap(Paint.Cap.ROUND)     // Rounded end for normal brush
+        canvasView.setJoin(Paint.Join.ROUND)   // Rounded join for normal brush
+        canvasView.setXfermode(null)           // Normal blending mode
+        canvasView.setLaserOn(false)
+        canvasView.setEraserOn(false)
+    }
+
+    fun setBrushToLaser() {
+        canvasView.setLaserOn(!canvasView.isLaserOn())
+    }
+
+    fun addMusic(wave:WaveformWithPlayPause){
+        wave.x=100f
+        wave.y=100f
+        val layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        wave.setOnChildClickListener(this)
+        addView(wave,layoutParams)
+        selectedViewType = ViewType.NONE
+        child =wave
+        childSelectedListener.getSelectedChild(ViewType.AUDIO,true,false)
+        clickedChildType=ViewType.AUDIO
+    }
+    /*
+    Method to get the current selected child of the layout
+     */
+    fun getCurrentEditText():LikhoEditText?{
+        if (currentEditext==null) {
+            return null
+        }
+        return currentEditext
+    }
+    /*
+    Methods to set the pen color and pen stroke width
+     */
+    fun setNormalPaintColor(penColor:Int){
+        canvasView.setColor(penColor)
+    }
+    fun  setPenStrokeWidth(penStrokeWidth:Float){
+        canvasView.setStrokeWidth(penStrokeWidth)
+    }
+    /*
+    Method to set the childSelectedListener.
+     */
+    fun setChildSelectedListener(childSelectedListener:childSelectedListener){
+        this.childSelectedListener=childSelectedListener
+    }
+    /*
+    Method to copy the currently selected child
+     */
+    fun copyChild(viewType: ViewType){
+        when(viewType){
+            ViewType.TEXT_VIEW ->{
+                val selectedChild=child as LikhoEditText
+               val copiedEditText=LikhoEditText(context)
+                copiedEditText.x=selectedChild.x+100f
+                copiedEditText.y=selectedChild.y+100f
+                copiedEditText.rotation=selectedChild.rotation
+                copiedEditText.init(this)
+                copiedEditText.setOnChildClickListener(this)
+                copiedEditText.hint="Dynamic Text"
+                val layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                /*
+                Getting the editable from the selected edittext
+                 */
+                val editable:Editable=selectedChild.editableText
+                copiedEditText.setText(editable)
+                copiedViewLayoutParams=layoutParams
+                copiedView=copiedEditText
+                firstTouched = true
+                selectedViewType = ViewType.NONE
+                child!!.isEnabled=false
+                child=copiedEditText
+           }
+            ViewType.IMAGE_VIEW->{
+                val selectedChild=child as LikhoImageView
+                val copiedImageView=LikhoImageView(context)
+                copiedImageView.x=selectedChild.x+100f
+                copiedImageView.y=selectedChild.y+100f
+                copiedImageView.rotation=selectedChild.rotation
+                copiedImageView.setOnChildClickListener(this)
+                /*
+                Getting and setting the uri
+                 */
+                val imageUri=selectedChild.getUri()
+                copiedImageView.setImageURI(imageUri)
+                copiedImageView.setUri(imageUri)
+                val layoutParams = FrameLayout.LayoutParams(selectedChild.width, selectedChild.height)
+                copiedViewLayoutParams=layoutParams
+                copiedView=copiedImageView
+                firstTouched = true
+                selectedViewType = ViewType.NONE
+                child!!.isEnabled=false
+                child=copiedImageView
+
+            }
+            ViewType.AUDIO->{
+                val selectedChild=child as WaveformWithPlayPause
+                val audioUri=selectedChild.getAudioUri()
+                val copiedWaveAudio=WaveformWithPlayPause(context,null,0,audioUri)
+                copiedWaveAudio.x=selectedChild.x+100f
+                copiedWaveAudio.y=selectedChild.y+100f
+                copiedWaveAudio.rotation=selectedChild.rotation
+                val layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                copiedWaveAudio.setOnChildClickListener(this)
+                /*
+                Setting the values
+                 */
+                copiedViewLayoutParams=layoutParams
+                copiedView=copiedWaveAudio
+                child!!.isEnabled=false
+                selectedViewType = ViewType.NONE
+                child =copiedWaveAudio
+            }
+            ViewType.CANVAS->{
+                child!!.invalidate()
+                (child as CustomCanvasView).copySelectedPaths()
+            }
+
+            else->{
+
+            }
         }
 
-    var isItalicEnabledPublic: Boolean
-        get() = this.isItalicEnabled
-        set(value) {
-            this.isItalicEnabled = value
+    }
+
+    /*
+    Method to paste the child.
+     */
+    fun pasteChild(){
+        if(copiedView!=null&&copiedViewLayoutParams!=null){
+
+                addView(copiedView,copiedViewLayoutParams)
+                copiedView=null
+                copiedViewLayoutParams=null
+                Log.d("mytag", "pasteChild: not calling the canvas ")
+        }else{
+            if(clickedChildType==ViewType.CANVAS){
+                canvasView.invalidate()
+                canvasView.pasteCopiedPaths()
+                Log.d("mytag", "pasteChild: calling the canvas ")
+            }
         }
 
-    var isUnderLineEnabledPublic: Boolean
-        get() = this.isUnderLineEnabled
-        set(value) {
-            this.isUnderLineEnabled = value
+
+    }
+    /*
+    method to remove view.
+     */
+    fun deleteView(){
+        if(child!=null&&clickedChildType!==ViewType.CANVAS){
+            if(clickedChildType==ViewType.AUDIO){
+                val musicUri=(child as WaveformWithPlayPause).getAudioUri()
+                deleteFileAtUri(context,musicUri)
+            }
+            removeView(child)
+        }
+        else{
+            canvasView.invalidate()
+            canvasView.deleteSelectedPaths()
+        }
+    }
+    fun lockUnlockChild(lock:Boolean){
+        if(child!=null){
+            Log.d("mytag", "lockUnlockChild: ")
+            when(clickedChildType){
+                ViewType.TEXT_VIEW ->{
+                    child!!.invalidate()
+                    (child as LikhoEditText).locked=lock
+                    Log.d("mytag", "lockUnlockChild: text ")
+                }
+                ViewType.IMAGE_VIEW->{
+                    child!!.invalidate()
+                    (child as LikhoImageView).setLocked(lock)
+
+                }
+                ViewType.AUDIO->{
+                    child!!.invalidate()
+                    (child as WaveformWithPlayPause).setLocked(lock)
+                }
+                ViewType.CANVAS->{
+                    child!!.invalidate()
+                    (child as CustomCanvasView).lockSelectedPaths()
+                }
+                else->{
+                    Log.d("mytag", "lockUnlockChild: none ")
+                }
+            }
+        }
+    }
+
+    /*
+    Method to delete the file at uri
+     */
+    fun deleteFileAtUri(context: Context, uri: Uri): Boolean {
+        return try {
+            // Attempt to delete the file using the ContentResolver
+            val contentResolver = context.contentResolver
+            val rowsDeleted = contentResolver.delete(uri, null, null)
+            rowsDeleted > 0 // Return true if at least one row was deleted
+        } catch (e: Exception) {
+            // Handle any exceptions (e.g., security exceptions or invalid URI)
+            e.printStackTrace()
+            false
+        }
+    }
+
+    private fun showLinkPopup(anchorView: View, url: String,linkName:String,pathBottom:Float,pathRight:Float) {
+        // Inflate the popup layout
+        val popupView = LayoutInflater.from(anchorView.context).inflate(R.layout.linkpopuplayout, null)
+        Log.d("mytag", "showLinkPopup: ")
+        // Create a PopupWindow
+        val popupWindow = PopupWindow(popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true)
+
+        // Set the link TextView
+        val tvLink: TextView = popupView.findViewById(R.id.tv_link)
+        tvLink.text=linkName
+        tvLink.setOnClickListener {
+            // Open the link in a browser
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            anchorView.context.startActivity(intent)
+            popupWindow.dismiss()
         }
 
-    var isStrikeThroughEnabledPublic: Boolean
-        get() = this.isStrikeThroughEnabled
-        set(value) {
-            this.isStrikeThroughEnabled = value
+        // Show the popup
+        popupWindow.elevation = 10f
+        if(clickedChildType!=ViewType.CANVAS){
+            popupWindow.showAsDropDown(anchorView, 0, 0) // Adjust position if needed
+        }
+        else{
+            popupWindow!!.showAtLocation(popupView, Gravity.CENTER, pathRight.toInt(), pathBottom.toInt())
         }
 
-    var isAlignmentEnabledPublic: Boolean
-        get() = this.isAlignmentEnabled
-        set(value) {
-            this.isAlignmentEnabled = value
-        }
 
-    var fontFacePublic: String
-        get() = this.fontFace
-        set(value) {
-            this.fontFace = value
+    }
+    /*
+    Method to set the link in the view.
+     */
+    fun setLinkInChild(linkName:String,linkURL:String,childType: ViewType){
+        if(child!=null){
+            when(childType){
+                ViewType.TEXT_VIEW ->{
+                    child!!.invalidate()
+                    (child as LikhoEditText).linkName=linkName
+                    (child as LikhoEditText).linkUrl=linkURL
+                }
+                ViewType.IMAGE_VIEW->{
+                    child!!.invalidate()
+                    (child as LikhoImageView).setLinkName(linkName)
+                    (child as LikhoImageView).setLinkUrl(linkURL)
+                }
+                ViewType.AUDIO->{
+                    child!!.invalidate()
+                    (child as WaveformWithPlayPause).setLinkName(linkName)
+                    (child as WaveformWithPlayPause).setLinkUrl(linkURL)
+                }
+                ViewType.CANVAS->{
+                    child!!.invalidate()
+                    (child as CustomCanvasView).setPathLink(linkURL,linkName)
+                }
+                else->{
+                    Log.d("mytag", "lockUnlockChild: none ")
+                }
+            }
         }
+    }
 
-    var fontSizePublic: Float
-        get() = this.fontSize
-        set(value) {
-            this.fontSize = value
+    /*
+    Method to set the isDrawingOn variable.
+     */
+    fun setIsDrawingOn(drawingMode:Boolean){
+        isDrawingOn=drawingMode
+    }
+    /*
+Method to set is lasso selected .
+ */
+    fun setIsLassoSelected(isLassoSelected:Boolean){
+        canvasView.setIsLassoSelected(isLassoSelected)
+        canvasView.setLaserOn(false)
+        canvasView.setEraserOn(false)
+    }
+    /*
+Method to and set the pen Type.
+ */
+    fun getPenType(): PenType {
+        return canvasView.getPenType()
+    }
+    fun setPenType(type: PenType){
+        canvasView.setPenType(type)
+    }
+
+    fun undoCanvas(){
+        canvasView.undoAction()
+    }
+    fun redoCanvas(){
+        canvasView.redoAction()
+    }
+
+    /*
+    Method to redo and undo imageView, textView,WaveMusicView
+     */
+    fun remainingViewUndo(viewType: ViewType){
+        Log.d("undotag", " layout")
+        when(viewType){
+            ViewType.TEXT_VIEW->{
+                (child as LikhoEditText).undo()
+                Log.d("undotag", "undo: layout")
+            }
+            ViewType.IMAGE_VIEW->{
+                (child as LikhoImageView).undo()
+            }
+            ViewType.AUDIO->{
+                (child as WaveformWithPlayPause).undo()
+            }
+            else->{
+
+            }
         }
+    }
 
-    var fontColorPublic: String
-        get() = this.fontColor
-        set(value) {
-            this.fontColor = value
+    fun remainingViewRedo(viewType: ViewType){
+        Log.d("redotag", "redolayout: ")
+        when(viewType){
+            ViewType.TEXT_VIEW->{
+                (child as LikhoEditText).redo()
+            }
+            ViewType.IMAGE_VIEW->{
+                Log.d("redotag", "redo:layout image ")
+                (child as LikhoImageView).redo()
+            }
+            ViewType.AUDIO->{
+                (child as WaveformWithPlayPause).redo()
+            }
+            else->{
+
+            }
         }
-
-    var isURLEnabledPublic: Boolean
-        get() = this.isURLEnabled
-        set(value) {
-            this.isURLEnabled = value
-        }
-
-    var linkTextPublic: String
-        get() = this.linkText
-        set(value) {
-            this.linkText = value
-        }
-
+    }
+    /*
+    Method to return the canvas view.
+     */
+    fun getCanvasView():CustomCanvasView{
+        return canvasView
+    }
 }

@@ -32,24 +32,26 @@ class DocumentViewModel(application: Application) :AndroidViewModel(application)
     Method to insert data into the database.
      */
     fun insertData(docModel: docModel){
-
         viewModelScope.launch {
             docRepository.insertData(docModel)
         }
-
     }
     /*
     Method to get the data from the database.
      */
-//    fun getDoc(name:String):docModel{
-//        viewModelScope.launch {
-//
-//        }
-//
-//    }
+   suspend fun getDoc(name:String): docModel? {
+        return docRepository.getDoc(name)
+    }
 
-    fun getDataByDate():LiveData<List<docModel>> = liveData(Dispatchers.IO) {
+   suspend fun getDataByDate():LiveData<List<docModel>> = liveData(Dispatchers.IO) {
         val data = docRepository.getAllDataByDate() // Assume this function exists in the repository
         emit(data)
+    }
+
+    /*
+ Method to update the color of a specific document
+*/
+   suspend fun updateDocColor(name: String, color: String){
+        docRepository.updateDocColor(name,color)
     }
 }

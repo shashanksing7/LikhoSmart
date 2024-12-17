@@ -2,45 +2,41 @@ package nishkaaminnovations.com.likhosmart
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import android.os.Bundle
-import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import nishkaaminnovations.com.likhosmart.HomeScreen.HomeActivity
 import android.content.Intent
+import android.graphics.Color
+import android.media.MediaPlayer
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.renderscript.Element
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import android.util.Log
+import android.view.View
+import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatImageButton
+import com.google.mlkit.vision.digitalink.Ink
+import nishkaaminnovations.com.likhosmart.HomeScreen.HomeActivity
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.InkRecognizer
+import nishkaaminnovations.com.likhosmart.databinding.ActivityMainBinding
+import top.defaults.colorpicker.ColorPickerView
+import java.io.File
+
 
 class MainActivity : AppCompatActivity() {
+    private var mediaPlayer: MediaPlayer? = null
+    private lateinit var binding:ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
+        binding=ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         val logoImageView = findViewById<View>(R.id.logoImageView)
         // Set up listeners for continuous zoom in and out
+        createNotesFolder()
         startZoomAnimation(logoImageView)
         takeToHomeScreen()
-
-          var _data = MutableStateFlow<String>("String")
-            var data: StateFlow<String> =_data
-
-            fun fetchData() {
-
-                    // Fetch your data here
-                    val result = "hi"
-                    _data.value = result
-
-            }
-
-
-
     }
 
     private fun startZoomAnimation(view: View) {
@@ -73,4 +69,14 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    /*
+    Method to check and create the notes folder.
+     */
+    private fun createNotesFolder(){
+        val notesFolder:File= File(filesDir,"Notes")
+        if(!notesFolder.exists()){
+            notesFolder.mkdir()
+            Log.d("myfiles", "createNotesFolder: file path = ${notesFolder}")
+        }
+    }
 }

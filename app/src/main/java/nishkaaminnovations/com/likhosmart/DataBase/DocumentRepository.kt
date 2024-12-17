@@ -18,23 +18,22 @@ class DocumentRepository(var context: Context) {
     Method to get all data form the DocTable,by name.
      */
     suspend fun getAllDataByName() {
-       return  withContext(Dispatchers.IO){
+
 //           docModelDAO.getdocListByName()
-       }
+
     }
     /*
     Method to get all data form the DocTable,by date.
      */
     suspend fun getAllDataByDate():List<docModel>{
-        return  withContext(Dispatchers.IO){
-            docModelDAO.getdocListByDate()
-        }
+        return docModelDAO.getdocListByDate()
+
     }
     /*
     Method to insert data in table.
      */
     suspend fun insertData(docModel: docModel){
-        withContext(Dispatchers.IO){
+        withContext(Dispatchers.IO) {
             docModelDAO.insertData(docModel)
         }
     }
@@ -42,25 +41,30 @@ class DocumentRepository(var context: Context) {
     Method to update data in table.
      */
     suspend fun UpDateData(docModel: docModel){
-        withContext(Dispatchers.IO){
+
             docModelDAO.updateData(docModel)
-        }
+
     }
     /*
    Method to Delete data in table.
     */
     suspend fun DeleteData(docModel: docModel){
-        withContext(Dispatchers.IO){
+
             docModelDAO.deleteData(docModel)
-        }
+
     }
     /*
     Method to get the specific doc form table by name.
      */
-    suspend fun getDoc(docName: String):docModel?{
-        return withContext(Dispatchers.IO){
-            docModelDAO.getDoc(docName)
-        }
+  suspend fun getDoc(docName: String):docModel?{
+        return docModelDAO.getDoc(docName)
+
+    }
+    /*
+   Method to update the color of a specific document
+*/
+   suspend fun updateDocColor(name: String, color: String){
+        docModelDAO.updateDocColor(name,color)
     }
 
 

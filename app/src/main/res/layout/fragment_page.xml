@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.CustomLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".WorkShop.Viewpager.PageFragment"
+    android:id="@+id/pageLayout"
+    android:layout_margin="20dp">
+
+</nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.CustomLayout>

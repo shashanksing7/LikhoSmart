@@ -5,10 +5,14 @@
     <color name="light_lavender">#EAEDF1</color>
     <color name="soft_teal">#BCD1D2</color>
     <color name="muted_gray">#A2A7A7</color>
+    <color name="light_muted_gray">#56A2A7A7</color>
     <color name="dark_grayish_green">#556058</color>
     <color name="charcoal_black">#15181C</color>
     <color name="muted_lavender">#9ED0D6E2</color>
     <color name="dark_soft_teal">#008080</color>
+    <color name="slated_gray">#83E5F7F8</color>
+    <color name="soft_orange">#FF8A65</color>
+    <color name="muted_blue">#64B5F6</color>
 
 
 </resources>

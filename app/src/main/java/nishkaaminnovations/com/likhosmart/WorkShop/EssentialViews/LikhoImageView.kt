@@ -7,10 +7,17 @@ import android.graphics.DashPathEffect
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
+import android.net.Uri
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
+import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatImageView
+import com.google.gson.Gson
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.likhoImageSave
+import java.io.File
+import java.io.FileWriter
 
 /*
 This class will represent the imageview of our app.
@@ -101,7 +108,7 @@ class LikhoImageView @JvmOverloads constructor(context: Context, attr:AttributeS
     Purpose: Defines the tolerance around the corners for detecting whether a user is touching near the corner for resizing or rotation.
     Usage: It is used to detect whether the touch event is near one of the corners of the image (where the resize handles or rotation handle are located).
     */
-    private val cornerTolerance = 50f
+    private val cornerTolerance = 50
 
     /*
     Purpose: Stores the last X position of the touch event during rotation.
@@ -119,13 +126,24 @@ class LikhoImageView @JvmOverloads constructor(context: Context, attr:AttributeS
     Purpose: The X coordinate of the center of the image, used for rotation.
     Usage: It is used as the pivot point for the rotation transformation, ensuring the image rotates around its center.
     */
-    private var centerX = 0f
+    private var centreX = 0f
 
     /*
     Purpose: The Y coordinate of the center of the image, used for rotation.
     Usage: Like centerX, it is used as the pivot point for rotating the image.
     */
-    private var centerY = 0f
+    private var centreY = 0f
+    /*
+    Offsets for dragging
+    */
+    private var dragOffsetX: Float = 0f
+    private var dragOffsetY: Float = 0f
+
+
+    /*
+    Variable for the rotation of the view.
+    */
+    private var rotationalAngle: Float = 0f
 
     /*
         Purpose: An interface for handling click events on the view.
@@ -147,11 +165,46 @@ class LikhoImageView @JvmOverloads constructor(context: Context, attr:AttributeS
     Variable for the utility class.
      */
     private var utility: ViewUtility?=null
+    /*
+    Variable to store the uri.
+     */
+    private  lateinit var imageURI: Uri
+    /*
+    Variable for locked or not.
+     */
+    private var isLocked:Boolean=false
+    /*
+        Variables to represent the link text and url
+         */
+    private var linkName = "noName"
+    private var linkUrl = "noURL"
+    /*
+    Variables for the redo and undo.
+     */
+    private val undoStack: MutableList<TransformationState> = mutableListOf()
+    private val redoStack: MutableList<TransformationState> = mutableListOf()
+    // Keep track of the current state
+    private var currentState: TransformationState? = null
+
+    /*
+    Helper Instance
+     */
+    private var likhoImageSave: likhoImageSave? = null
+    /*
+Variables that will be used to save the edittext .
+ */
+    private val fileName = "trialimage.json"
+    private val typeName = "likhoImage"
+    private val DocumentName = "Trial"
+    private var imageFile: File? = null
+
 
     /*
     This is the initialisation block that is used to initialised the paint objects and set layout params.
      */
     init {
+        initialiseFile()
+        likhoImageSave=likhoImageSave()
         utility= ViewUtility(this)
         // Set the scale type of the image to FIT_CENTER. This means the image will be scaled to fit within the bounds of the ImageView,
         // while maintaining its aspect ratio. It ensures that the image is displayed fully and centered within the ImageView.
@@ -190,12 +243,15 @@ class LikhoImageView @JvmOverloads constructor(context: Context, attr:AttributeS
         super.setEnabled(enabled)
         // Custom logic for enabling/disabling the view
         if (!enabled) {
-            utility = ViewUtility(this)
-        } else {
             utility = null
+            updateHelperInstance()
+            saveLikhoEditText()
+        } else {
+            utility = ViewUtility(this)
+            updateHelperInstance()
+            saveLikhoEditText()
         }
     }
-
 
     /*
     Method to draw rectangle on the canvas
@@ -273,6 +329,9 @@ class LikhoImageView @JvmOverloads constructor(context: Context, attr:AttributeS
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
+        if(isLocked|| onChildClickListener.isDrawingOn()){
+            return
+        }
         // Check if the view is enabled before proceeding
         if (!isEnabled) {
             return
@@ -288,53 +347,63 @@ class LikhoImageView @JvmOverloads constructor(context: Context, attr:AttributeS
     override fun onTouchEvent(event: MotionEvent): Boolean {
 
         // If there's a click listener and the view is disabled, trigger the onViewClicked method
-        if (onChildClickListener != null && !isEnabled) {
-            onChildClickListener?.onViewClicked(this)
+        if (onChildClickListener != null) {
+            if (onChildClickListener.isDrawingOn()) {
+                return true
+            }
+            onChildClickListener?.onViewClicked(this,CustomLayout.ViewType.IMAGE_VIEW,isLocked,true,linkUrl,linkName,0f,0f)
+        }
+        if(isLocked){
+            return true
         }
 
         // Handle different touch actions
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                utility!!.resizeCorner=utility!!.getResizeCorner(event)
+                resizeCorner=getResizeCorner(event)
                 // If the top-right corner is being touched, initiate rotation
-                if (utility!!.resizeCorner == 1) { // Top-right corner for rotation
-                    utility!!.lastTouchX = event.rawX
-                    utility!!.lastTouchY = event.rawY
-                    utility!!.centreX = (x + width) / 2
-                    utility!!.centreY = (y + height) / 2
+                if (resizeCorner == 1) { // Top-right corner for rotation
+                   lastTouchX = event.rawX
+                    lastTouchY = event.rawY
+                    centreX = (x + width) / 2
+                    centreY = (y + height) / 2
                     isRotating = true
 
-                } else if (utility!!.resizeCorner != -1) { // Resizing handles
-                    utility!!.initialHeight = height.toFloat()
-                    utility!!.initialWidth = width.toFloat()
-                    utility!!.initialX = event.rawX
+                } else if (resizeCorner != -1) { // Resizing handles
+                    initialHeight = height.toFloat()
+                   initialWidth = width.toFloat()
+                    initialX = event.rawX
+                    initialY=event.rawY
                     isResizing = true
-                } else if (utility!!.isDraggableArea(event,DRAG_AREA_MARGIN)) {
-                    utility!!.dragOffsetX = event.rawX - x
-                    utility!!.dragOffsetY = event.rawY - y
+                } else if (isDraggableArea(event,DRAG_AREA_MARGIN)) {
+                    dragOffsetX = event.rawX - x
+                   dragOffsetY = event.rawY - y
                     isDragging = true
                 }
             }
             MotionEvent.ACTION_MOVE -> {
                 // If resizing is active, handle the resizing logic
                 if (isResizing && isEnabled) {
-                    utility!!.handleResize(event)
+                    captureState()
+                    handleResize(event)
                     invalidate()
                 }
                 // If rotating is active, handle the rotation logic
                 else if (isRotating && isEnabled) {
-                    utility!!.handleRotation(event)
+                    captureState()
+                    handleRotation(event)
                 } else {
                     // Dragging logic: Move the view based on the touch position
-                    utility!!.handleDrag(event)
+                    captureState()
+                    handleDrag(event)
                     invalidate() // Redraw the view
                 }
             }
-
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 // Reset resizing and rotating states
                 isResizing = false
                 isRotating = false
+                isDragging=false
             }
         }
         return true
@@ -343,6 +412,275 @@ class LikhoImageView @JvmOverloads constructor(context: Context, attr:AttributeS
     // Setter for the interface listener
     fun setOnChildClickListener(listener: onChildViewClickListener) {
         this.onChildClickListener = listener
+    }
+
+    /*
+    methods to handle resize,drag,rotations
+     */
+    /*
+    Method to decide which corner the user touched
+     */
+    fun getResizeCorner(event: MotionEvent): Int {
+        if (event.x < cornerTolerance && event.y < cornerTolerance) return 0 // Top-left
+
+        if (event.x > width - cornerTolerance + 20 && event.y < cornerTolerance + 20) return 1 // Top-right (for rotation)
+
+        if (event.x < cornerTolerance && event.y > height - cornerTolerance) return 2 // Bottom-left
+
+        if (event.x > width - cornerTolerance && event.y > height - cornerTolerance) return 3 // Bottom-right
+
+        return -1 // Not near any corner
+    }
+
+    /*
+    Method to Handle the resize of the view.
+     */
+    fun handleResize(event: MotionEvent) {
+        val deltaX = event.rawX - initialX!!
+        val deltaY = event.rawY - initialY!!
+
+        var newWidth = initialWidth!!.toInt()
+        var newHeight = initialHeight!!.toInt()
+
+        // Resize logic based on the corner being dragged
+        if (resizeCorner == 0) { // Top-left
+            newWidth = (initialWidth!! - deltaX).toInt()
+            newHeight = (initialHeight!! - deltaY).toInt()
+        } else if (resizeCorner == 2) { // Bottom-left
+            newWidth = (initialWidth!! - deltaX).toInt()
+            newHeight = (initialHeight!! + deltaY).toInt()
+        } else if (resizeCorner == 3) { // Bottom-right
+            newWidth = (initialWidth!! + deltaX).toInt()
+            newHeight = (initialHeight!! + deltaY).toInt()
+        }
+
+        if (newHeight < 50) newHeight = 200 // Prevent collapsing
+
+        if (newWidth < 100) newWidth = 200 // Prevent collapsing
+
+        val params: ViewGroup.LayoutParams = layoutParams
+        params.width = newWidth
+        params.height = newHeight
+        layoutParams=params
+    }
+
+    /*
+       Method to check if the user tap lies in drag area or not.
+    */
+    fun isDraggableArea(event: MotionEvent, DRAG_AREA_MARGIN: Int): Boolean {
+        // Check if the touch event is within the draggable area, considering the margin
+        return (event.x > DRAG_AREA_MARGIN) && event.x < (width - DRAG_AREA_MARGIN) && event.y > DRAG_AREA_MARGIN && event.y < (height - DRAG_AREA_MARGIN)
+    }
+
+    /*
+    Method to handle drag.
+     */
+    fun handleDrag(event: MotionEvent) {
+        // Dragging logic
+        var newX: Float = event.rawX - dragOffsetX
+        val newY: Float = event.rawY - dragOffsetY
+
+        x=newX
+       y=newY
+    }
+
+    // Handles the rotation logic based on touch events
+    fun handleRotation(event: MotionEvent) {
+        val newTouchX = event.rawX
+        val newTouchY = event.rawY
+
+// Calculate angle between the two points (new and old)
+        val angle = Math.toDegrees(
+            Math.atan2((newTouchY - centreY).toDouble(), (newTouchX - centreX).toDouble()) -
+                    Math.atan2((lastTouchY - centreY).toDouble(), (lastTouchX - centreX).toDouble())
+        ).toFloat()
+
+// Apply rotation
+        rotationAngle += angle
+        rotation = rotationAngle
+
+// Update last touch points
+        lastTouchX = newTouchX
+        lastTouchY = newTouchY
+
+        invalidate()
+
+    }
+    /*
+    Setter and getter methods for uri
+     */
+    fun getUri():Uri{
+        return imageURI
+    }
+   public  fun setUri(uri: Uri){
+        imageURI=uri
+    }
+
+    fun getLocked(): Boolean {
+        return isLocked
+    }
+
+    fun setLocked(locked: Boolean) {
+        isLocked = locked
+        invalidate()
+    }
+
+    fun getLinkName(): String {
+        return linkName
+    }
+
+    fun setLinkName(linkName: String) {
+        this.linkName = linkName
+    }
+
+    fun getLinkUrl(): String {
+        return linkUrl
+    }
+
+    fun setLinkUrl(linkUrl: String) {
+        this.linkUrl = linkUrl
+    }
+    /*
+    Method for the redo and undo.
+     */
+    fun undo() {
+        Log.d("redotag", "undo: ")
+        if (undoStack.isNotEmpty()) {
+            // Push the current state to redoStack before undoing
+            currentState?.let {
+                redoStack.add(it)
+                Log.d("redotag", "undo:adding to redo")
+            }
+
+            // Pop the last state from undoStack
+            val lastState = undoStack.removeAt(undoStack.size - 1)
+            currentState = lastState
+
+            // Apply the state
+            applyTransformation(lastState)
+        }
+    }
+
+    fun redo() {
+        Log.d("redotag", "redo: ")
+        if (redoStack.isNotEmpty()) {
+            // Push the current state to undoStack before redoing
+
+            currentState?.let {
+                undoStack.add(it)
+                Log.d("redotag", "redo:adding to undo")
+            }
+
+            // Pop the next state from redoStack
+            val nextState = redoStack.removeAt(redoStack.size - 1)
+            currentState = nextState
+
+            // Apply the state
+            applyTransformation(nextState)
+        }
+    }
+
+    private fun applyTransformation(state: TransformationState) {
+        // Apply width, height, rotation, and position to the image view
+
+        val params: ViewGroup.LayoutParams = layoutParams
+        params.width = state.width.toInt()
+        params.height = state.height.toInt()
+        layoutParams=params
+        rotationAngle = state.rotationAngle
+        rotation = state.rotationAngle
+        x = state.xPosition
+        y = state.yPosition
+
+        invalidate() // Redraw the view
+
+        // Update the current state
+        currentState = state
+    }
+
+
+    /*
+    Method to capture the current state of the view.
+     */
+    private fun captureState() {
+        val state = TransformationState(
+            width = width.toFloat(),
+            height = height.toFloat(),
+            rotationAngle = rotationAngle,
+            xPosition = x,
+            yPosition = y
+        )
+        undoStack.add(state)
+        redoStack.clear() // Clear the redo stack whenever a new transformation is made
+    }
+
+
+    /*
+    Data class to represent the state of the view.
+     */
+    data class TransformationState(
+        val width: Float,
+        val height: Float,
+        val rotationAngle: Float,
+        val xPosition: Float,
+        val yPosition: Float
+    )
+    /*
+    Method to initialise the file  object.
+     */
+    private fun initialiseFile() {
+            val appFolder = File(context.filesDir, "Notes")
+        Log.d("abspath", "initialiseFile: appfolder path = ${appFolder.absolutePath}")
+        if(appFolder!=null){
+            Log.d("abspath", "initialiseFile: appfolder not null path = ${appFolder}")
+        }
+        val documentFolder = File(appFolder, DocumentName)
+            if (!documentFolder.exists()) {
+                documentFolder.mkdir()
+            }
+            val typeFolder = File(documentFolder, typeName)
+            if (!typeFolder.exists()) {
+                typeFolder.mkdir()
+            }
+            imageFile = File(typeFolder,fileName)
+            if (!imageFile!!.exists()) {
+                try {
+                    imageFile!!.createNewFile()
+                } catch (e: Exception) {
+                    Log.d("fileCreatingError", "initialiseFile: error creating editextfile")
+                }
+            }
+
+    }
+
+    /*
+    Method to save the edittext with page specific name .
+     */
+    fun saveLikhoEditText() {
+        /*
+        Creating String Json of the helper instance.
+         */
+        val gson = Gson()
+        val jsonString = gson.toJson(likhoImageSave)
+        try {
+            FileWriter(imageFile).use { writer ->
+                writer.write(jsonString) // Write the JSON data
+            }
+        } catch (e: Exception) {
+            Log.d("savingError", "saveLikhoEditText: Exception is $e")
+        }
+    }
+
+    /*
+    Method to update the helper instance.
+     */
+    private fun updateHelperInstance() {
+        likhoImageSave!!.setX(x)
+        likhoImageSave!!.setY(y)
+        likhoImageSave!!. setRotationalAngle(rotation)
+        likhoImageSave!!.setFileName(fileName)
+        likhoImageSave!!.setUri(imageURI.toString())
+        Log.d("myURI", "updateHelperInstance: image uri ${imageURI}")
     }
 
 }

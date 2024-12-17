@@ -1,20 +1,47 @@
-<nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.CustomLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".WorkShop.WorkShop"
     android:background="@color/light_lavender"
     android:id="@+id/parent_layout">
 
-
+<androidx.viewpager2.widget.ViewPager2
+    android:id="@+id/LikhoPager"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginBottom="55dp"
+    android:layout_above="@id/bottom_buttons_layout"
+    android:layout_alignParentTop="true"
+    />
  <LinearLayout
+     android:id="@+id/bottom_buttons_layout"
      android:layout_width="match_parent"
      android:layout_height="54dp"
      android:layout_gravity="bottom"
      android:orientation="horizontal"
      android:gravity="center"
      android:background="@color/white"
-     android:visibility="gone">
+     >
+  <androidx.appcompat.widget.AppCompatImageButton
+      android:id="@+id/childundoButton"
+      android:layout_width="25dp"
+      android:layout_height="25dp"
+      android:src="@drawable/undo"
+      android:scaleType="fitCenter"
+      android:layout_gravity="center"
+      android:background="?attr/selectableItemBackgroundBorderless"
+      android:layout_marginHorizontal="25dp" />
+  <androidx.appcompat.widget.AppCompatImageButton
+      android:id="@+id/childredoButton"
+      android:layout_width="25dp"
+      android:layout_height="25dp"
+      android:src="@drawable/redo"
+      android:scaleType="fitCenter"
+      android:layout_gravity="center"
+      android:background="?attr/selectableItemBackgroundBorderless"
+      android:layout_marginHorizontal="5dp" />
   <LinearLayout
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
@@ -118,7 +145,7 @@
       android:gravity="center">
 
    <androidx.appcompat.widget.AppCompatImageButton
-       android:id="@+id/belowlockButton"
+       android:id="@+id/childLockButton"
        android:layout_width="20dp"
        android:layout_height="20dp"
        android:src="@drawable/lock_svgrepo_com"
@@ -126,6 +153,7 @@
         />
 
    <TextView
+       android:id="@+id/lockText"
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
        android:text="Lock"
@@ -135,16 +163,160 @@
        android:layout_marginBottom="8dp"/>
   </LinearLayout>
 
-
  </LinearLayout>
  <LinearLayout
+     android:id="@+id/drawingButtonsLayout"
+     android:layout_width="match_parent"
+     android:layout_height="54dp"
+    android:layout_gravity="bottom"
+     android:orientation="horizontal"
+     android:background="@color/light_lavender"
+     >
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:weightSum="1">
+   <HorizontalScrollView
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="0.8">
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+     <androidx.appcompat.widget.AppCompatImageButton
+         android:id="@+id/undoButton"
+         android:layout_width="25dp"
+         android:layout_height="25dp"
+         android:src="@drawable/undo"
+         android:scaleType="fitCenter"
+         android:layout_gravity="center"
+         android:background="?attr/selectableItemBackgroundBorderless"
+         android:layout_marginHorizontal="25dp" />
+     <androidx.appcompat.widget.AppCompatImageButton
+         android:id="@+id/redoButton"
+         android:layout_width="25dp"
+         android:layout_height="25dp"
+         android:src="@drawable/redo"
+         android:scaleType="fitCenter"
+         android:layout_gravity="center"
+         android:background="?attr/selectableItemBackgroundBorderless"
+         android:layout_marginHorizontal="5dp" />
+     <androidx.appcompat.widget.AppCompatImageButton
+         android:id="@+id/normalPen"
+         android:layout_width="25dp"
+         android:layout_height="25dp"
+         android:src="@drawable/pen"
+         android:scaleType="fitCenter"
+         android:layout_gravity="center"
+         android:background="?attr/selectableItemBackgroundBorderless"
+         android:tint="@color/workshopbuttonsbg"
+         android:layout_marginHorizontal="25dp"/>
+
+     <androidx.appcompat.widget.AppCompatImageButton
+         android:id="@+id/eraser"
+         android:layout_width="25dp"
+         android:layout_height="25dp"
+         android:src="@drawable/eraser"
+         android:scaleType="fitCenter"
+         android:layout_gravity="center"
+         android:background="?attr/selectableItemBackgroundBorderless"
+         android:tint="@color/workshopbuttonsbg"
+         android:layout_marginHorizontal="5dp"/>
+     <androidx.appcompat.widget.AppCompatImageButton
+         android:id="@+id/highlighter"
+         android:layout_width="25dp"
+         android:layout_height="25dp"
+         android:src="@drawable/highlighter"
+         android:scaleType="fitCenter"
+         android:layout_gravity="center"
+         android:background="?attr/selectableItemBackgroundBorderless"
+         android:tint="@color/workshopbuttonsbg"
+         android:layout_marginHorizontal="25dp"/>
+     <androidx.appcompat.widget.AppCompatImageButton
+         android:id="@+id/dashedPen"
+         android:layout_width="25dp"
+         android:layout_height="25dp"
+         android:src="@drawable/dashed"
+         android:scaleType="fitCenter"
+         android:layout_gravity="center"
+         android:background="?attr/selectableItemBackgroundBorderless"
+         android:tint="@color/workshopbuttonsbg"
+         android:layout_marginHorizontal="5dp"/>
+     <androidx.appcompat.widget.AppCompatImageButton
+         android:id="@+id/laserPen"
+         android:layout_width="25dp"
+         android:layout_height="25dp"
+         android:src="@drawable/laserpen"
+         android:scaleType="fitCenter"
+         android:layout_gravity="center"
+         android:background="?attr/selectableItemBackgroundBorderless"
+         android:tint="@color/workshopbuttonsbg"
+         android:layout_marginHorizontal="25dp"/>
+     <androidx.appcompat.widget.AppCompatImageButton
+         android:id="@+id/lasso"
+         android:layout_width="25dp"
+         android:layout_height="25dp"
+         android:src="@drawable/lasso_tool_svgrepo_com_1_"
+         android:scaleType="fitCenter"
+         android:layout_gravity="center"
+         android:background="?attr/selectableItemBackgroundBorderless"
+         android:tint="@color/workshopbuttonsbg"
+         android:layout_marginHorizontal="8dp"/>
+
+     <androidx.appcompat.widget.AppCompatEditText
+         android:id="@+id/brushStroke"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:text="10"
+         android:textSize="15dp"
+         android:layout_gravity="center"
+         android:layout_marginHorizontal="10dp"
+         android:inputType="number"/>
+
+     <androidx.appcompat.widget.AppCompatImageButton
+         android:id="@+id/choosenColor"
+         android:layout_width="25dp"
+         android:layout_height="25dp"
+         android:src="@drawable/baseline_circle_24"
+         android:layout_marginHorizontal="20dp"
+         android:scaleType="fitCenter"
+         android:layout_gravity="center"
+         android:background="?attr/selectableItemBackgroundBorderless"/>
+
+     <androidx.appcompat.widget.AppCompatImageButton
+         android:id="@+id/chooseColor"
+         android:layout_width="28dp"
+         android:layout_height="28dp"
+         android:src="@drawable/color_palette_paint_svgrepo_com"
+         android:layout_marginHorizontal="20dp"
+         android:scaleType="fitCenter"
+         android:layout_gravity="center"
+         android:background="?attr/selectableItemBackgroundBorderless"/>
+
+    </LinearLayout>
+   </HorizontalScrollView>
+   <androidx.appcompat.widget.AppCompatButton
+       android:id="@+id/drawingDoneButton"
+       android:layout_width="0dp"
+       android:layout_height="54dp"
+       android:layout_weight="0.2"
+       android:background="@color/light_muted_gray"
+       android:text="Done"
+       android:textAllCaps="false"
+       android:textColor="@color/white" />
+  </LinearLayout>
+ </LinearLayout>
+ <LinearLayout
+     android:id="@+id/mainButtonsLayout"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:orientation="horizontal"
      android:layout_gravity="bottom"
-     android:background="@color/muted_lavender"
+     android:background="@color/light_lavender"
      android:gravity="center"
-
      >
 
   <!-- Text Button Layout -->
@@ -274,31 +446,6 @@
        android:layout_marginBottom="8dp"/>
   </LinearLayout>
 
-  <!-- Lasso Button Layout -->
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="vertical"
-      android:gravity="center">
-
-   <androidx.appcompat.widget.AppCompatImageButton
-       android:id="@+id/lassoButton"
-       android:layout_width="20dp"
-       android:layout_height="20dp"
-       android:src="@drawable/lasso_tool_svgrepo_com_1_"
-       style="@style/WorkShopImageButtons"
-       android:tint="@color/workshopbuttonsbg" />
-
-   <TextView
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:text="Lasso"
-       android:textSize="12sp"
-       android:gravity="center"
-       android:textColor="@color/black"
-       android:layout_marginBottom="8dp"/>
-  </LinearLayout>
-
   <LinearLayout
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
@@ -314,6 +461,7 @@
        android:tint="@color/workshopbuttonsbg" />
 
    <TextView
+       android:id="@+id/mainLockText"
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
        android:text="Lock"
@@ -324,7 +472,62 @@
   </LinearLayout>
 
  </LinearLayout>
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:id="@+id/inkrecognizerContainer"
+    android:layout_gravity="bottom"
+    android:background="@color/white"
+    android:visibility="gone">
  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="horizontal"
+     android:background="@color/slated_gray">
+  <com.github.angads25.toggle.widget.LabeledSwitch
+      android:id="@+id/manualOrAuto"
+      android:layout_width="80dp"
+      android:layout_height="wrap_content"
+      android:layout_margin="10dp"
+      android:textSize="12dp"
+      app:on="false"
+      app:textOn="Auto"
+      app:textOff="Manual"
+      app:colorOn="@color/dark_soft_teal"
+      app:colorOff="@color/soft_teal"
+      app:colorBorder="@color/dark_soft_teal"/>
+  <androidx.appcompat.widget.AppCompatButton
+      android:id="@+id/readButton"
+      android:layout_width="wrap_content"
+      android:layout_height="33dp"
+      android:background="@drawable/clearbuttonbg"
+      android:text="Read"
+      android:textAllCaps="false"
+      android:textColor="@color/white"
+      android:layout_margin="10dp"/>
+  <androidx.appcompat.widget.AppCompatImageButton
+      android:id="@+id/offsetPaths"
+      android:layout_width="33dp"
+      android:layout_height="33dp"
+      android:background="?attr/selectableItemBackgroundBorderless"
+      android:src="@drawable/left_arrow_svgrepo_com"
+      android:tint="@color/dark_soft_teal"
+      android:scaleType="fitCenter"
+      android:layout_margin="10dp"/>
+  <androidx.appcompat.widget.AppCompatImageButton
+      android:id="@+id/clearRecognizer"
+      android:layout_width="33dp"
+      android:layout_height="33dp"
+      android:src="@drawable/clear_circle_svgrepo_com"
+      android:background="?attr/selectableItemBackgroundBorderless"
+      android:tint="@color/dark_soft_teal"
+      android:scaleType="fitCenter"
+      android:layout_margin="10dp"/>
+ </LinearLayout>
+</LinearLayout>
+ <LinearLayout
+     android:id="@+id/TextEditingLayout"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_gravity="bottom"
@@ -338,6 +541,14 @@
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
        android:orientation="horizontal">
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/recogniserHelp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        style="@style/WorkShopImageButtons"
+        android:src="@drawable/finger"
+        android:layout_marginBottom="10dp"
+        android:tint="@color/texteditbuttoncolor"/>
     <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/fontButton"
         android:layout_width="25dp"
@@ -418,5 +629,4 @@
 
  </LinearLayout>
 
-
-</nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.CustomLayout>
+</FrameLayout>

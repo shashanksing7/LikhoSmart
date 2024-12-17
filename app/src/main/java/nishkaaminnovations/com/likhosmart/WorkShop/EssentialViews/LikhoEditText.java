@@ -1,6 +1,8 @@
 package nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
@@ -12,6 +14,8 @@ import android.text.Editable;
 import android.text.Html;
 import android.text.Layout;
 import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextWatcher;
 import android.text.style.AlignmentSpan;
 import android.text.style.ForegroundColorSpan;
@@ -22,14 +26,27 @@ import android.text.style.TypefaceSpan;
 import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatEditText;
 
-class LikhoEditText extends AppCompatEditText {
+import com.google.gson.Gson;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Stack;
+
+import nishkaaminnovations.com.likhosmart.R;
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.likhoEditSave;
+
+public class LikhoEditText extends AppCompatEditText {
 
     // Constants
     private static final int TOUCH_TOLERANCE = 50; // Increased tolerance for touch
@@ -40,9 +57,7 @@ class LikhoEditText extends AppCompatEditText {
      */
     private boolean isResizing = false; // Flag to indicate if resizing is in progress
     private boolean isDragging = false; // Flag to indicate if dragging is in progress
-    private  boolean isRotating=false;  //Flag to indicate if rotating is in progress
-
-
+    private boolean isRotating = false;  //Flag to indicate if rotating is in progress
 
     /*
      * Variables for custom drawing
@@ -69,25 +84,38 @@ class LikhoEditText extends AppCompatEditText {
     /*
     Default text size for the Edit text.
      */
-    private static final int DEFAULT_SIZE=10;
+    private static final int DEFAULT_SIZE = 10;
     /*
     Object of the   HtmlTagHandler class.
      */
     private HtmlTagHandler htmlTagHandler;
 
+    private Boolean isLocked=false;
+    /*
+    Variables for redo and undo
+     */
+    // Stacks for undo and redo history
+    private final Stack<Editable> undoStack = new Stack<>();
+    private final Stack<Editable> redoStack = new Stack<>();
+    private boolean isUndoOrRedo = false;
+
+    /*
+        Variables to represent the link text and url
+         */
+    private String linkName="noName";
+    private  String linkUrl="noURL";
+
     public LikhoEditText(Context context) {
         super(context);
-        init();
     }
 
     public LikhoEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
+
     }
 
     public LikhoEditText(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
     }
 
     @Override
@@ -96,21 +124,29 @@ class LikhoEditText extends AppCompatEditText {
         // Custom logic for enabling/disabling the view
         if (!enabled) {
             isSecondTouch = false;
-            utility = new ViewUtility(this);
-            htmlTagHandler= new HtmlTagHandler();
-
+            utility = null;
+            htmlTagHandler = null;
+            updateHelperInstance();
+            saveLikhoEditText();
         } else {
             isSecondTouch = false;
-            utility=null;
-            htmlTagHandler=null;
+            utility = new ViewUtility(this);
+            htmlTagHandler = new HtmlTagHandler();
+            updateHelperInstance();
+            saveLikhoEditText();
         }
     }
 
-    private void init() {
+    void init(CustomLayout layout) {
+        /*
+        Initialising the helper instance.
+         */
+        initialiseFile();
+        likhoEditSave=new likhoEditSave();
         // Set default text size in SP
-        setTextSize(TypedValue.COMPLEX_UNIT_SP,DEFAULT_SIZE);
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, DEFAULT_SIZE);
         utility = new ViewUtility(this);
-        layout =(CustomLayout) getParent();
+        this.layout = layout;
         // Set transparent background to remove the black outline
         setBackgroundColor(Color.TRANSPARENT);
 
@@ -127,55 +163,102 @@ class LikhoEditText extends AppCompatEditText {
         touchPointPaint.setColor(Color.BLUE); // Touch point color
         touchPointPaint.setStyle(Paint.Style.STROKE);
         touchPointPaint.setStrokeWidth(2); // Stroke width for touch points
-
         // Set padding and minimum dimensions for the EditText
         setPadding(35, 35, 35, 35);
         setMinimumWidth(150);
-
-        // Add text watcher for dynamic resizing
-        this.post(() -> addTextChangedListener(new TextWatcher() {
-            private int start=0;
-            private int count=0;
-            private boolean isSpacePressed = false;
+        this.post(new Runnable() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                isDeleting = after < count;
+            public void run() {
+                // Add text watcher for dynamic resizing
+                addTextChangedListener(new TextWatcher() {
+                    private int start = 0;
+                    private int count = 0;
+                    private boolean isSpacePressed = false;
+                    private Editable beforeChange;
+
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                        isDeleting = after < count;
+                        if (!isUndoOrRedo) {
+                            beforeChange = getText().toString() != null ? new SpannableStringBuilder(getText()) : null;
+                        }
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        resize();
+                        this.start = start;
+                        this.count = count;
+                        isSpacePressed = count > 0 && s != null && s.charAt(start) == ' ';
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        Log.d("texttag", "count =  "+count);
+                        if (!isDeleting && count > 0 && s != null && !isSpacePressed&&!isUndoOrRedo) {
+                            Log.d("texttag", "afterTextChanged: called = "+count);
+                            applyTextStyles(s, start, count);
+                        }
+                        isSpacePressed = false;
+                        if (!isUndoOrRedo && beforeChange != null) {
+                            // Push the old state to the undo stack
+
+                            undoStack.push(beforeChange);
+                            // Clear the redo stack because a new change invalidates the redo history
+                            redoStack.clear();
+                        }
+                    }
+                });
             }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                this.start = start;
-                this.count = count;
-                isSpacePressed = count > 0 && s != null && s.charAt(start) == ' ';
-                resize();
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (!isDeleting && count > 0 && s != null && !isSpacePressed) {
-//                    applyTextStyles(s, start, count);
-                }
-                isSpacePressed = false;
-            }
-        }));
-
+        });
         // Toggle circle visibility based on focus
         setOnFocusChangeListener((v, hasFocus) -> {
             showCircles = hasFocus;
             invalidate();
         });
     }
-
     private void resize() {
-        // Adjust height dynamically based on text content
-        int lineHeight = getLineHeight();
-        int lines = getLineCount();
-        int height = lineHeight * lines + getPaddingTop() + getPaddingBottom();
+        int textMargin = 50;
+        // Get the Layout object of the EditText, which contains information about the text layout
+        Layout layout = getLayout();
+        if (layout == null) {
+            return; // Exit if layout is not initialized yet
+        }
 
-        // Update the view's height
+        int totalHeight = 0;
+
+        // Loop through each line of the text
+        for (int i = 0; i < layout.getLineCount(); i++) {
+            // Get the start and end index of the line
+            int lineStart = layout.getLineStart(i);
+            int lineEnd = layout.getLineEnd(i);
+
+            // Get the portion of text in the current line
+            CharSequence lineText = getText().subSequence(lineStart, lineEnd);
+
+            // Determine the relative font size for the current line
+            float maxRelativeSize = 1.0f; // Default multiplier
+            if (lineText instanceof Spanned) {
+                Spanned spannedText = (Spanned) lineText;
+
+                // Find all RelativeSizeSpans applied to this line
+                RelativeSizeSpan[] spans = spannedText.getSpans(0, lineText.length(), RelativeSizeSpan.class);
+                for (RelativeSizeSpan span : spans) {
+                    maxRelativeSize = Math.max(maxRelativeSize, span.getSizeChange());
+                }
+            }
+
+            // Calculate the line height considering the maximum relative size span
+            int lineHeight = (int) (getLineHeight() * maxRelativeSize);
+            totalHeight += lineHeight;
+        }
+
+        // Add padding to the calculated height
+        totalHeight += getPaddingTop() + getPaddingBottom();
+
+        // Adjust the height of the EditText
         ViewGroup.LayoutParams params = getLayoutParams();
-        params.height = height;
+        params.height = totalHeight + textMargin; // Set the new height
         setLayoutParams(params);
     }
 
@@ -183,6 +266,9 @@ class LikhoEditText extends AppCompatEditText {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        if(onChildClickListener.isDrawingOn()){
+            return;
+        }
         // Draw outer rectangle if focused
         if (isFocused() || isSecondTouch) {
             drawOuterRectangle(canvas);
@@ -200,20 +286,30 @@ class LikhoEditText extends AppCompatEditText {
         canvas.drawRect(outerRect, rectanglePaint);
     }
 
+    Bitmap bitmap;
+
     private void drawTouchPoints(Canvas canvas) {
         float radius = 20; // Radius of touch points
         float inset = 35; // Margin matching the rectangle
 
         // Draw circles at the corners
         canvas.drawCircle(inset, inset, radius, touchPointPaint); // Top-left
-        canvas.drawCircle(getWidth() - inset, inset, radius+10, touchPointPaint); // Top-right
+        canvas.drawCircle(getWidth() - inset, inset, radius + 10, touchPointPaint); // Top-right
         canvas.drawCircle(inset, getHeight() - inset, radius, touchPointPaint); // Bottom-left
         canvas.drawCircle(getWidth() - inset, getHeight() - inset, radius, touchPointPaint); // Bottom-right
     }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (onChildClickListener != null && !isEnabled()) {
-            onChildClickListener.onViewClicked(this);
+
+        if (onChildClickListener != null) {
+            if(onChildClickListener.isDrawingOn()){
+                return true ;
+            }
+            onChildClickListener.onViewClicked(this, CustomLayout.ViewType.TEXT_VIEW,isLocked,true,linkUrl,linkName,0f,0f);
+        }
+        if(isLocked){
+            return true;
         }
 
         if (!isSecondTouch) {
@@ -226,22 +322,21 @@ class LikhoEditText extends AppCompatEditText {
             case MotionEvent.ACTION_DOWN:
                 utility.setResizeCorner(utility.getResizeCorner(event));
 
-                if(utility.getResizeCorner()==1){
+                if (utility.getResizeCorner() == 1) {
                     utility.setLastTouchX(event.getRawX());
                     utility.setLastTouchY(event.getRawY());
-                    utility.setCentreX((getX()+getWidth())/2);
-                    utility.setCentreY((getY()+getHeight())/2);
-                    isRotating=true;
-                }
-                 else if (utility.getResizeCorner()!=-1) {
+                    utility.setCentreX((getX() + getWidth()) / 2);
+                    utility.setCentreY((getY() + getHeight()) / 2);
+                    isRotating = true;
+                } else if (utility.getResizeCorner() != -1) {
                     utility.setInitialHeight(getHeight());
                     utility.setInitialWidth(getWidth());
                     utility.setInitialX(event.getRawX());
+                    utility.setInitialY(event.getRawY());
                     isResizing = true;
                     showCircles = true;
                     invalidate();
-                }
-                else if (utility.isDraggableArea(event, DRAG_AREA_MARGIN)) {
+                } else if (utility.isDraggableArea(event, DRAG_AREA_MARGIN)) {
                     utility.setDragOffsetX(event.getRawX() - getX());
                     utility.setDragOffsetY(event.getRawY() - getY());
                     isDragging = true;
@@ -253,7 +348,6 @@ class LikhoEditText extends AppCompatEditText {
                 if (isResizing) {
                     utility.handleResize(event);
                     resize();
-                    invalidate();
                     return true;
                 }
                 if (isDragging) {
@@ -261,26 +355,30 @@ class LikhoEditText extends AppCompatEditText {
                     invalidate();
 
                 }
-                if(isRotating){
+                if (isRotating) {
                     utility.handleRotation(event);
                 }
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
+                if(isDragging|| isRotating){
+                    updateHelperInstance();
+                }
                 isResizing = false;
                 isDragging = false;
-                isRotating=false;
+                isRotating = false;
                 invalidate();
                 break;
         }
 
         return super.onTouchEvent(event);
     }
+
     /*
     Method to Check and Apply text Styles.
      */
-    private void applyTextStyles(int start, int count) {
-        Editable editableText = getText();
+    private void applyTextStyles(Editable editableText, int start, int count) {
+
         int end = start + count;
 
         // Ensure indices are within valid range
@@ -289,64 +387,203 @@ class LikhoEditText extends AppCompatEditText {
         }
 
         // Apply styles only to the newly added text segment
-        if (layout.isBoldEnabledPublic()) {
+        if (layout.getIsBoldEnabled()) {
             editableText.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        if (layout.isItalicEnabledPublic()) {
+        if (layout.getIsItalicEnabled()) {
             editableText.setSpan(new StyleSpan(Typeface.ITALIC), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        if (layout.isUnderLineEnabledPublic()) {
+        if (layout.getIsUnderLineEnabled()) {
             editableText.setSpan(new UnderlineSpan(), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        if (layout.isStrikeThroughEnabledPublic()) {
+        if (layout.getIsStrikeThroughEnabled()) {
             editableText.setSpan(new StrikethroughSpan(), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         if (true) {
-            editableText.setSpan(new TypefaceSpan(layout.getFontFacePublic()), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            editableText.setSpan(new TypefaceSpan(layout.getFontFace()), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         if (true) {
-            String colorString = layout.getFontColorPublic(); // Returns something like "#FF0000"
+            String colorString = layout.getFontColor(); // Returns something like "#FF0000"
             int color = Color.parseColor(colorString);
             editableText.setSpan(new ForegroundColorSpan(color), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        if (layout.isURLEnabledPublic()) {
-            editableText.setSpan(new URLSpan(layout.getLinkTextPublic()), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (layout.getIsURLEnabled()) {
+            editableText.setSpan(new URLSpan(layout.getLinkText()), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        if (true) {
-            editableText.setSpan(new RelativeSizeSpan(layout.getFontSizePublic()), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (false) {
+            editableText.setSpan(new RelativeSizeSpan(layout.getFontSize()), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        if (layout.isAlignmentEnabledPublic()) {
+        if (layout.getIsAlignmentEnabled()) {
             editableText.setSpan(new AlignmentSpan.Standard(Layout.Alignment.ALIGN_NORMAL), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
+        resize();
     }
-        /*
-    Method to save the editable object as an html
-     */
-    private void  saveUsingHtml(){
-           String html = Html.toHtml (getText(),Html.FROM_HTML_MODE_COMPACT);
+
+    /*
+Method to save the editable object as an html
+ */
+    private String saveUsingHtml() {
+        return Html.toHtml(getText(), Html.FROM_HTML_MODE_COMPACT);
     }
+
     /*
     Method to extract th editable form html.
      */
-    private void  getTextFromHTML(){
+   public  void getTextFromHTML(String html) {
 
-        String html="to be initilaized";
-        setText(Html.fromHtml(prepareHTMLForTagHandling(html),Html.FROM_HTML_MODE_COMPACT,null,htmlTagHandler));
-
+        setText(Html.fromHtml(prepareHTMLForTagHandling(html), Html.FROM_HTML_MODE_COMPACT, null, htmlTagHandler));
     }
-     /*
-    Method to replace the tag with the custom tag for fontSize.
-     */
-     public String prepareHTMLForTagHandling(String htmlSource) {
-         if (htmlSource == null || htmlSource.isEmpty()) {
-             return null;
-         }
-         return htmlSource
-                 .replace("<span", "<fontsizetag")
-                 .replace("</span>", "</fontsizetag>");
-     }
+
+    /*
+   Method to replace the tag with the custom tag for fontSize.
+    */
+    public String prepareHTMLForTagHandling(String htmlSource) {
+        if (htmlSource == null || htmlSource.isEmpty()) {
+            return null;
+        }
+        return htmlSource
+                .replace("<span", "<fontsizetag")
+                .replace("</span>", "</fontsizetag>");
+    }
+
     // Setter for child click listener
     public void setOnChildClickListener(onChildViewClickListener listener) {
         this.onChildClickListener = listener;
     }
+    public Boolean getLocked() {
+        return isLocked;
+    }
+
+    public void setLocked(Boolean locked) {
+        isLocked = locked;
+        Log.d("mytag", "setLocked: "+locked);
+        invalidate();
+    }
+    public String getLinkName() {
+        return linkName;
+    }
+
+    public void setLinkName(String linkName) {
+        this.linkName = linkName;
+    }
+
+    public String getLinkUrl() {
+        return linkUrl;
+    }
+
+    public void setLinkUrl(String linkUrl) {
+        this.linkUrl = linkUrl;
+    }
+
+    /*
+    Redo and undo Method
+     */
+    // Undo method
+    public void undo() {
+        Log.d("undotag", "undo: start");
+        if (!undoStack.isEmpty()) {
+            Log.d("undotag", "undo: not empty");
+            Editable currentText = getText();
+            if (currentText != null) {
+                redoStack.push(new SpannableStringBuilder(currentText)); // Save current state to redo stack
+            }
+            Editable previousText = undoStack.pop(); // Retrieve the last state
+            isUndoOrRedo = true; // Set flag to prevent infinite loop
+            setText(previousText);
+            setSelection(previousText.length()); // Move cursor to end of text
+            isUndoOrRedo = false;
+        }
+    }
+
+    // Redo method
+    public void redo() {
+        if (!redoStack.isEmpty()) {
+            Editable currentText = getText();
+            if (currentText != null) {
+                undoStack.push(new SpannableStringBuilder(currentText)); // Save current state to undo stack
+            }
+            Editable nextText = redoStack.pop(); // Retrieve the last undone state
+            isUndoOrRedo = true; // Set flag to prevent infinite loop
+            setText("");
+            append(nextText);
+            setSelection(nextText.length()); // Move cursor to end of text
+            isUndoOrRedo = false;
+        }
+    }
+
+    // Clear history (optional utility method)
+    public void clearHistory() {
+        undoStack.clear();
+        redoStack.clear();
+    }
+
+
+    /*
+    Variables that will be used to save the edittext .
+     */
+    private String fileName="trialfile.json";
+    private String typeName="likhoEdit";
+    private String DocumentName="Trial";
+    private File editTextFile;
+    /*
+    Helper Instance.
+     */
+    private likhoEditSave likhoEditSave;
+    /*
+    Method to initialise the file  object.
+     */
+    private void initialiseFile(){
+        File appFolder=new File(getContext().getFilesDir(),"Notes");
+        File documentFolder=new File(appFolder,DocumentName);
+        if(!documentFolder.exists()){
+            documentFolder.mkdir();
+        }
+        File typeFolder=new File(documentFolder,typeName);
+        if(!typeFolder.exists()){
+            typeFolder.mkdir();
+        }
+        editTextFile=new File(typeFolder,fileName);
+        if(!editTextFile.exists()){
+            try{
+                editTextFile.createNewFile();
+            }
+            catch (Exception e){
+                Log.d("fileCreatingError", "initialiseFile: error creating editextfile");
+            }
+
+        }
+
+    }
+    /*
+    Method to save the edittext with page specific name .
+     */
+    void saveLikhoEditText(){
+        File editTextFile = new File(getContext().getFilesDir(), "Notes" + File.separator + DocumentName + File.separator + typeName + File.separator + fileName);
+        /*
+        Creating String Json of the helper instance.
+         */
+        Gson gson = new Gson();
+        String jsonString=gson.toJson(likhoEditSave);
+        try (FileWriter writer = new FileWriter(editTextFile)) {
+            writer.write(jsonString); // Write the JSON data
+        }
+        catch (Exception e){
+            Log.d("savingError", "saveLikhoEditText: Exception is "+e.toString());
+        }
+
+
+    }
+
+    /*
+    Method to update the helper instance.
+     */
+    private void updateHelperInstance(){
+        likhoEditSave.setX(getX());
+        likhoEditSave.setY(getY());
+        likhoEditSave.setRotationalAngle(getRotation());
+        likhoEditSave.setFileName(fileName);
+        likhoEditSave.setText(saveUsingHtml());
+    }
+    
+
 }
