@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center"
+    >
+
+    <TextView
+        android:id="@+id/tvLogoutPrompt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Are you sure you want to log out?"
+        android:textSize="16sp"
+        android:textColor="@color/charcoal_black"
+        android:gravity="center"
+        android:fontFamily="@font/interbold"
+        android:paddingBottom="8dp"
+        />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/logout_svgrepo_com"
+        android:tint="#D33C3C"
+        android:layout_gravity="center"
+        android:layout_marginTop="8dp"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="16dp"
+        >
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancel"
+            android:textSize="15sp"
+            android:textAllCaps="false"
+            android:backgroundTint="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/interregular"
+            android:background="@drawable/buttonbg"
+            android:layout_marginEnd="8dp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnLogout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@color/muted_gray"
+            android:background="@drawable/buttonbg"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            android:fontFamily="@font/interregular"
+            android:textColor="@color/charcoal_black"
+            android:text="Log Out"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+</LinearLayout>

@@ -52,6 +52,8 @@ dependencies {
     implementation libs.material
     implementation libs.androidx.activity
     implementation libs.androidx.constraintlayout
+    implementation libs.firebase.database.collection
+    implementation libs.androidx.foundation.layout.android
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
@@ -77,12 +79,20 @@ dependencies {
     implementation 'com.karumi:dexter:6.2.3'
     implementation  'com.github.massoudss:waveformSeekBar:5.0.2'
     implementation 'com.github.lincollincol:amplituda:2.2.2'
-    implementation 'com.github.squti:Android-Wave-Recorder:2.0.1'
-    implementation 'com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1'
-    implementation 'com.github.duanhong169:colorpicker:1.1.6'
-    implementation 'com.google.mlkit:digital-ink-recognition:18.1.0'
-    implementation 'com.github.angads25:toggle:1.1.0'
-    implementation 'com.google.code.gson:gson:2.8.9'
-
+    implementation libs.android.wave.recorder
+    implementation libs.play.services.mlkit.document.scanner
+    implementation libs.colorpicker
+    implementation libs.digital.ink.recognition
+    implementation libs.toggle
+    implementation libs.gson
+    implementation libs.fit.button
+    implementation libs.circleimageview
+    implementation libs.powerspinner
+    implementation(libs.sdk.for.android)
+    implementation 'com.google.guava:guava:32.0.1-android'
+    implementation 'com.github.yalantis:ucrop:2.2.9-native'
+    implementation 'at.favre.lib:bcrypt:0.9.0'
+    implementation 'com.google.android.gms:play-services-ads:23.6.0'
+    implementation 'com.otaliastudios:zoomlayout:1.9.0'
 
 }

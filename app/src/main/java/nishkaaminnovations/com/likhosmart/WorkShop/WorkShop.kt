@@ -2,20 +2,18 @@ package nishkaaminnovations.com.likhosmart.WorkShop
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.AlertDialog
 import android.app.Dialog
-import android.content.ContentResolver
-import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Environment
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
@@ -28,7 +26,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.PopupWindow
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
@@ -39,7 +36,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.widget.ViewPager2
 import com.github.angads25.toggle.interfaces.OnToggledListener
@@ -54,39 +53,43 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import nishkaaminnovations.com.likhosmart.DataBase.DocumentViewModel
+import nishkaaminnovations.com.likhosmart.DataBase.DocumentViewModelFactory
 import nishkaaminnovations.com.likhosmart.DataBase.docModel
 import nishkaaminnovations.com.likhosmart.R
-import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.CustomCanvasView
-import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.CustomLayout
-import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.InkRecognizer
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.ccv
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.cl
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.ir
 import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.PaintProperties
-import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.PaintPropertiesSerializer
-import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.LikhoPathDeserializer
-import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.LikhoPathSerializer
-import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.PaintPropertiesDeserializer
-import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.likhoAudioSave
-import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.likhoEditSave
-import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.likhoImageSave
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.pps
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.lpd
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.lps
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.ppd
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.las
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.les
+import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.SaveClasses.lis
 import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.childSelectedListener
 import nishkaaminnovations.com.likhosmart.WorkShop.EssentialViews.likhoPath
-import nishkaaminnovations.com.likhosmart.WorkShop.MusicPlayer.WaveformWithPlayPause
+import nishkaaminnovations.com.likhosmart.WorkShop.MusicPlayer.la
 import nishkaaminnovations.com.likhosmart.WorkShop.Viewpager.PageAdapter
 import nishkaaminnovations.com.likhosmart.WorkShop.Viewpager.PageFragment
+import nishkaaminnovations.com.likhosmart.WorkShop.Viewpager.lastPageFragment
+import nishkaaminnovations.com.likhosmart.WorkShop.Viewpager.lastPageListener
 import nishkaaminnovations.com.likhosmart.databinding.FragmentWorkShopBinding
 import top.defaults.colorpicker.ColorPickerView
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
-import java.io.OutputStream
 
 
 /*
 This class will work as the workshop for the document editing.
  */
-class WorkShop : Fragment(){
+class WorkShop : Fragment(), lastPageListener {
     /*
     Variable to represent the Adapter of the view pager.
      */
@@ -94,7 +97,7 @@ class WorkShop : Fragment(){
     /*
     Variable to represent the current layout.
      */
-    private lateinit var currentPageLayout:CustomLayout
+    private lateinit var currentPageLayout:cl
     /*
     The binding variable for thi class.
      */
@@ -168,7 +171,7 @@ Array to hold the Dialog buttons.
     /*
     This variable will be used to represent the type of the currently selected view.
      */
-    private var selectedChildType:CustomLayout.ViewType=CustomLayout.ViewType.NONE
+    private var selectedChildType:cl.ViewType=cl.ViewType.NONE
     /*
     Variable to represent if the child is locked or not.
      */
@@ -193,6 +196,7 @@ Array to hold the Dialog buttons.
     Variables to decide if the dialogbox should disappear.
      */
    var loadedCount:Int=0
+   var totalItemViewCount:Int=0
     /*
     Variable to represent the currently loaded document
      */
@@ -209,6 +213,14 @@ Array to hold the Dialog buttons.
     private var  pageNumber:String="Page";
     private var  documentName:String="Trial"
     private var typeLikhoEditText:String="likhoEdit"
+    /*
+ Required variables
+  */
+    private val viewModel: DocumentViewModel by viewModels {
+        DocumentViewModelFactory(
+            requireActivity().application
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -241,6 +253,7 @@ Array to hold the Dialog buttons.
                 addMusic(uri!!)
             }
         }
+        binding.LikhoPager.isUserInputEnabled=false
         /*
         Initialising the adapter.
          */
@@ -249,12 +262,13 @@ Array to hold the Dialog buttons.
         Getting the currenlty oaded document model
          */
         docModel=args.document
+        Log.d("mytag", "onCreateView: ${docModel.docLocation}")
         /**
          * Method to add the frgaments to the viewPager2 adapter.
          */
         createDocumentList(docModel)
         documentName=docModel.name
-
+        binding.LikhoPager.offscreenPageLimit = 10
         /*
         Setting the adapter.
          */
@@ -270,7 +284,7 @@ Array to hold the Dialog buttons.
         /*
         Adding the main buttons to an array.
          */
-        mainButtonArray= arrayOf(binding.textButton,binding.drawButton,binding.audioButton,binding.imageButton,binding.shapeButton,binding.lockButton)
+        mainButtonArray= arrayOf(binding.textButton,binding.drawButton,binding.audioButton,binding.imageButton,binding.shapeButton)
         /*
         initialising the buttons.
          */
@@ -298,72 +312,40 @@ Array to hold the Dialog buttons.
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 currentFragment = pageAdapter.createFragment(position)
-               currentPageLayout=currentFragment.layout
-                if (currentFragment != null) {
+                val lastPagePosition = pageAdapter?.itemCount?.minus(1) ?: 0
+                if (currentFragment != null&&(position!=lastPagePosition)) {
                     currentPageLayout = currentFragment.layout
                     pageNumber="Page"+(currentFragment.pageNumber).toString()
+                    currentPageLayout.setDocumentLocation(docModel.docLocation)
+                    currentPageLayout.setPageNumber(pageNumber)
+                    updateLayoutsBasedOnType(cl.ViewType.NONE,false, false)
                     currentPageLayout.setChildSelectedListener(object :childSelectedListener{
                         override fun getSelectedChild(
-                            currentChildType:CustomLayout.ViewType,
+                            currentChildType:cl.ViewType,
                             isChildSelected: Boolean
-                            ,isLocked:Boolean
+                            , isLocked:Boolean
                         ) {
-                            selectedChildType=currentChildType
-                            isAnyChildSelected=isChildSelected
-                            Log.d("mytag", "getSelectedChild:isAnyChildSelected= "+isAnyChildSelected)
-                            isChildLocked=isLocked
-                            if(isAnyChildSelected){
-                                Log.d("mytag", "getSelectedChild: "+currentChildType)
-                                binding.bottomButtonsLayout.visibility=View.VISIBLE
-                                binding.mainButtonsLayout.visibility=View.GONE
-                                if(currentChildType == CustomLayout.ViewType.TEXT_VIEW){
-                                    binding.TextEditingLayout.visibility=View.VISIBLE
-                                }
-                                if(currentChildType==CustomLayout.ViewType.CANVAS){
-                                    binding.lockText.visibility=View.GONE
-                                    binding.childLockButton.visibility=View.GONE
-                                    modifyDrawingLayoutParam(153)
+                            updateLayoutsBasedOnType(currentChildType,isChildSelected, isLocked)
+                        }
 
-                                }
-                                else if(currentChildType==CustomLayout.ViewType.IMAGE_VIEW){
-                                    binding.drawingButtonsLayout.visibility=View.GONE
-                                    binding.bottomButtonsLayout.visibility=View.VISIBLE
-                                    binding.mainButtonsLayout.visibility=View.GONE
-                                }
-                                if(isLocked){
-                                    binding.lockText.text="Unlock"
-                                }
-                                else{
-                                    binding.lockText.text="Lock"
-                                }
-                                /*
-                                Enabling buttons.
-                                */
-                                binding.copyButton.isEnabled=true
-                                binding.lockButton.isEnabled=true
-                                binding.deleteButton.isEnabled=true
-                                isDeleteAble=true
-
+                        override fun addPopUpChild(currentChildType: cl.ViewType) {
+                            if(currentChildType==cl.ViewType.CANVAS){
+                                startDrawingOnBUttonPress()
                             }
                             else{
-                                Log.d("mytag", "getSelectedChild:no chils selected ")
-                                binding.bottomButtonsLayout.visibility=View.GONE
-                                binding.mainButtonsLayout.visibility=View.VISIBLE
-                                binding.TextEditingLayout.visibility=View.GONE
-                                binding.lockText.visibility=View.VISIBLE
-                                binding.childLockButton.visibility=View.VISIBLE
-                                modifyDrawingLayoutParam(0)
-                                isDeleteAble=false
+                                startImagePickingOnButtonPress()
                             }
                         }
 
                     })
                 }
-                if(!currentFragment.pageLoaded){
+                else{
+                    binding.mainButtonsLayout.visibility=View.GONE
+                }
+                if(!currentFragment.pageLoaded&&position!=lastPagePosition){
                     Log.d("beforeCoroutine", "onPageSelected: calling before coroutines")
                     loadingDialog.show()
                     CoroutineScope(Dispatchers.IO).launch {
-                        try {
                             // Run all tasks concurrently and wait for their completion
                             coroutineScope {
                                 launch { readLikhoEditText() }
@@ -371,15 +353,10 @@ Array to hold the Dialog buttons.
                                 launch { readLikhoAudio() }
                                 launch { readLikhoCanvas() }
                             }
-                        } finally {
-                            withContext(Dispatchers.Main) {
-                                loadingDialog.dismiss()
-                            }
-                        }
                     }
                     currentFragment.pageLoaded=true
                     loadedCount=0
-
+                    totalItemViewCount=0
                 }
             }
 
@@ -388,6 +365,8 @@ Array to hold the Dialog buttons.
         /*
         initialising the view pager.
          */
+        binding.LikhoPager.isUserInputEnabled=false
+
 
         return binding.root
     }
@@ -397,9 +376,11 @@ Array to hold the Dialog buttons.
      */
     private fun createDocumentList(docModel: docModel) {
         for (i in 0 until docModel.noOfPages) {
-            // Example logic: Print page number
-            pageAdapter.addFragment(PageFragment(i,false))
+            // Add each page fragment to the adapter
+            pageAdapter.addFragment(PageFragment(i + 1, false))
         }
+        // Ensure the lastPageFragment is added at the end
+        pageAdapter.addFragment(lastPageFragment(this))
     }
 
     /*
@@ -409,10 +390,11 @@ Array to hold the Dialog buttons.
        val audioUri=Uri.parse(copyAudioToLocalStorage(uri))
 
         Log.d("audioUri", "addMusic: musicUri = ${audioUri}")
-        val view=WaveformWithPlayPause(requireContext(),null,0,audioUri!!)
+        val view=la(requireContext(),null,0,audioUri!!)
         view.setAudioUri(audioUri)
+        Log.d("audioURI", "setAudioUri: audio uri set in workshop ${audioUri.toString()}")
         currentPageLayout.addMusic(view)
-        currentPageLayout.setSelectedViewType(CustomLayout.ViewType.AUDIO)
+        binding.LikhoPager.isUserInputEnabled=false
     }
     /*
     Method to change the colors of the buttons
@@ -443,8 +425,9 @@ Array to hold the Dialog buttons.
         binding.textButton.setOnClickListener {
             changeState(binding.textButton)
             currentPageLayout.firstTouched = false
-            currentPageLayout.setSelectedViewType(CustomLayout.ViewType.TEXT_VIEW)
+            currentPageLayout.setSelectedViewType(cl.ViewType.TEXT_VIEW)
             binding.TextEditingLayout.visibility = View.VISIBLE
+            binding.LikhoPager.isUserInputEnabled=false
 
         }
         /*
@@ -452,18 +435,14 @@ Array to hold the Dialog buttons.
          */
         binding.drawButton.setOnClickListener {
             changeState(binding.drawButton)
-            currentPageLayout.setSelectedViewType(CustomLayout.ViewType.CANVAS)
-            currentPageLayout.setIsDrawingOn(true)
-            modifyPenInitialState()
-            binding.mainButtonsLayout.visibility = View.GONE
-            binding.drawingButtonsLayout.visibility = View.VISIBLE
-
+            startDrawingOnBUttonPress()
         }
         /*
         initializing shape button.
          */
         binding.shapeButton.setOnClickListener {
             changeState(binding.shapeButton)
+
         }
         /*
         initializing audio button.
@@ -478,28 +457,37 @@ Array to hold the Dialog buttons.
          */
         binding.imageButton.setOnClickListener {
             changeState(binding.imageButton)
-            currentPageLayout.firstTouched = false
-            currentPageLayout.setSelectedViewType(CustomLayout.ViewType.IMAGE_VIEW)
-            documentScanner!!.getStartScanIntent(requireActivity())
-                .addOnSuccessListener { intentSender ->
-                    documentScannerLauncher!!.launch(
-                        IntentSenderRequest.Builder(intentSender).build()
-                    )
-                }
-                .addOnFailureListener { e ->
-                    Log.e("ScannerError", "Failed to start scanner", e)
-                }
-        }
-        /*
-        initializing lock button.
-         */
-        binding.lockButton.setOnClickListener {
-            changeState(binding.lockButton)
-            val isUnlocked = binding.LikhoPager.isUserInputEnabled
-            binding.LikhoPager.isUserInputEnabled = !isUnlocked
-            binding.mainLockText.text = if (isUnlocked) "UnLock" else "Lock"
+            startImagePickingOnButtonPress()
+
         }
 
+    }
+    /*
+    Method to start the image picking  from the
+     */
+    private fun startImagePickingOnButtonPress(){
+        currentPageLayout.firstTouched = false
+        currentPageLayout.setSelectedViewType(cl.ViewType.IMAGE_VIEW)
+        documentScanner!!.getStartScanIntent(requireActivity())
+            .addOnSuccessListener { intentSender ->
+                documentScannerLauncher!!.launch(
+                    IntentSenderRequest.Builder(intentSender).build()
+                )
+            }
+            .addOnFailureListener { e ->
+                Log.e("ScannerError", "Failed to start scanner", e)
+            }
+    }
+    /*
+    Method to start drawing process on the
+     */
+    private  fun startDrawingOnBUttonPress(){
+        currentPageLayout.setSelectedViewType(cl.ViewType.CANVAS)
+        currentPageLayout.setIsDrawingOn(true)
+        modifyPenInitialState()
+        binding.mainButtonsLayout.visibility = View.GONE
+        binding.drawingButtonsLayout.visibility = View.VISIBLE
+        binding.LikhoPager.isUserInputEnabled=false
     }
         /*
     Method to initialize the text editing button.
@@ -513,7 +501,7 @@ Array to hold the Dialog buttons.
 
             modifySelection(it as AppCompatImageButton)
             isRecognitionOn=!isRecognitionOn
-            modifyLayoutVisibility()
+            modifyLayoutVisibility(true)
         }
         /*
         initialising font type button.
@@ -531,12 +519,32 @@ Array to hold the Dialog buttons.
         /*
          initialising font size button.
          */
-        binding.fontSizeButton.setOnClickListener{
-            modifySelection(it as TextView)
-        }
-        /*
-         initialising bold button.
-         */
+            binding.fontSizeButton.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                    // Code to execute before text changes
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    // Code to execute when text changes
+                    // Example: Log the new text or update a variable
+                    s?.let {
+                        val newFontSize = it.toString().toFloatOrNull()
+                        if (newFontSize != null) {
+                            // Use the new font size for something
+                            Log.d("FontSize", "Font size changed to: $newFontSize")
+                            currentPageLayout.setFontSize((newFontSize.toFloat()/10))
+                        }
+                    }
+                }
+
+                override fun afterTextChanged(s: Editable?) {
+                    // Code to execute after the text changes
+                }
+            })
+
+            /*
+             initialising bold button.
+             */
         binding.boldButton.setOnClickListener{
             modifySelection(it as AppCompatImageButton)
             currentPageLayout.setIsBoldEnabled(!currentPageLayout.getIsBoldEnabled())
@@ -588,7 +596,6 @@ Array to hold the Dialog buttons.
             button.isSelected=true
         }
     }
-
     /*
     Function to toggle visibility.
      */
@@ -616,7 +623,6 @@ Array to hold the Dialog buttons.
         val dialogView = inflater.inflate(R.layout.audiooptions, null)
         val audioRecord:AppCompatImageButton=dialogView.findViewById(R.id.audioRecord)
         val audioPick:AppCompatImageButton=dialogView.findViewById(R.id.audioPick)
-
         audioPick.setOnClickListener{
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
         intent.setType("audio/*")
@@ -792,9 +798,10 @@ Array to hold the Dialog buttons.
                 Add the image t the image view
                  */
                 val imageUri=result!!.getPages()!!.get(0).getImageUri()
-                Log.d("mytag", "handleResult: uri = "+imageUri)
-                currentPageLayout.addImageView(imageUri)
-                saveImageToLocalStorage(requireContext().contentResolver, imageUri)
+                val savedImageUri=saveImageToLocalStorage( imageUri)
+                currentPageLayout.addImageView(savedImageUri)
+                binding.LikhoPager.isUserInputEnabled=false
+
             }
 
 
@@ -823,32 +830,32 @@ Array to hold the Dialog buttons.
        binding.normalPen.setOnClickListener{
             changeDrawingButtonsState(it as AppCompatImageButton)
             currentPageLayout.setBrushToNormal(penWidth,penColor)
-           currentPageLayout.setPenType(CustomCanvasView.PenType.NormalPen)
+           currentPageLayout.setPenType(ccv.PenType.NormalPen)
            currentPageLayout.setIsLassoSelected(false)
 
         }
         binding.eraser.setOnClickListener{
             changeDrawingButtonsState(it as AppCompatImageButton)
             currentPageLayout.setBrushToErase(penWidth)
-            currentPageLayout.setPenType(CustomCanvasView.PenType.EraserPen)
+            currentPageLayout.setPenType(ccv.PenType.EraserPen)
             currentPageLayout.setIsLassoSelected(false)
         }
         binding.highlighter.setOnClickListener{
             changeDrawingButtonsState(it as AppCompatImageButton)
             currentPageLayout.setBrushToHighlighter(penWidth,penColor)
-            currentPageLayout.setPenType(CustomCanvasView.PenType.HighLighterPen)
+            currentPageLayout.setPenType(ccv.PenType.HighLighterPen)
             currentPageLayout.setIsLassoSelected(false)
         }
         binding.laserPen.setOnClickListener{
             changeDrawingButtonsState(it as AppCompatImageButton)
             currentPageLayout.setBrushToLaser()
-            currentPageLayout.setPenType(CustomCanvasView.PenType.LaserPen)
+            currentPageLayout.setPenType(ccv.PenType.LaserPen)
             currentPageLayout.setIsLassoSelected(false)
         }
         binding.dashedPen.setOnClickListener{
             changeDrawingButtonsState(it as AppCompatImageButton)
             currentPageLayout.setBrushToDashed(penWidth,penColor)
-            currentPageLayout.setPenType(CustomCanvasView.PenType.DashedPen)
+            currentPageLayout.setPenType(ccv.PenType.DashedPen)
             currentPageLayout.setIsLassoSelected(false)
         }
         binding.chooseColor.setOnClickListener{
@@ -857,13 +864,16 @@ Array to hold the Dialog buttons.
         binding.lasso.setOnClickListener{
             changeDrawingButtonsState(it as AppCompatImageButton)
             currentPageLayout.setIsLassoSelected(true)
-            currentPageLayout.setPenType(CustomCanvasView.PenType.LassoPen)
+            currentPageLayout.setPenType(ccv.PenType.LassoPen)
         }
         binding.drawingDoneButton.setOnClickListener{
             currentPageLayout.setIsDrawingOn(false)
             binding.drawingButtonsLayout.visibility=View.GONE
             binding.mainButtonsLayout.visibility=View.VISIBLE
-            currentPageLayout.setSelectedViewType(CustomLayout.ViewType.NONE)
+            currentPageLayout.setSelectedViewType(cl.ViewType.NONE)
+            binding.LikhoPager.isUserInputEnabled=true
+
+
         }
         binding.brushStroke.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -881,6 +891,7 @@ Array to hold the Dialog buttons.
 
                     // Convert the text to an integer and assign it to penWidth
                     penWidth = text.toFloatOrNull() ?: 0f  // Default to 0 if conversion fails
+                    currentPageLayout.setBrushWidth(penWidth)
                 }
             }
         })
@@ -962,8 +973,9 @@ Array to hold the Dialog buttons.
         /*
         Initialising the INk recogniser view.
          */
-        val inkRecognizer=InkRecognizer(requireContext())
-        inkRecognizer.setRecognitionResultListener(object:RecognitionResultListener{
+        val ir=ir(requireContext())
+        ir.downloadAndInitializeModel("en-US")
+        ir.setRecognitionResultListener(object:RecognitionResultListener{
             override fun getRecognitionResult(result: String) {
                 Log.i("mytag", result)
                 /*
@@ -980,16 +992,16 @@ Array to hold the Dialog buttons.
         /*
         adding dynamic view to the container.
          */
-        binding.inkrecognizerContainer.addView(inkRecognizer)
+        binding.inkrecognizerContainer.addView(ir)
         // Assuming inkRecognizer is a View or has a layout that you can modify
-        val layoutParams = inkRecognizer.layoutParams
+        val layoutParams = ir.layoutParams
 
         // Set the height to 300 and width to match_parent
         layoutParams.height = 450
         layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
 
         // Apply the updated layoutParams
-        inkRecognizer.layoutParams = layoutParams
+        ir.layoutParams = layoutParams
         /*
         Initialising the toggle switch.
          */
@@ -999,11 +1011,11 @@ Array to hold the Dialog buttons.
                 Checking if the toggle is on or off.
                  */
                 if(isOn){
-                    inkRecognizer.setIsAutomatic(true)
+                    ir.setIsAutomatic(true)
                     binding.readButton.isEnabled=false
                 }
                 else{
-                    inkRecognizer.setIsAutomatic(false)
+                    ir.setIsAutomatic(false)
                     binding.readButton.isEnabled=true
                 }
             }
@@ -1013,27 +1025,27 @@ Array to hold the Dialog buttons.
         Initialising the read button
          */
         binding.readButton.setOnClickListener{
-            inkRecognizer.startRecognition()
+            ir.startRecognition()
         }
         /*
         Initialising the read button
          */
         binding.clearRecognizer.setOnClickListener{
-            inkRecognizer.clearInk()
+            ir.clearInk()
         }
         /*
         Initialising the read button
          */
         binding.offsetPaths.setOnClickListener{
-            inkRecognizer.offsetPaths(true)
+            ir.offsetPaths(true)
         }
 
     }
     /*
     Method to hide/show,modify the bottom margin.
      */
-    private fun modifyLayoutVisibility(){
-        if(isRecognitionOn){
+    private fun modifyLayoutVisibility(doIt:Boolean){
+        if(doIt){
             /*
             Setting the bottom margin
              */
@@ -1064,6 +1076,7 @@ Array to hold the Dialog buttons.
         binding.pasteButton.isEnabled=false
         binding.undoButton.setOnClickListener{
             currentPageLayout.undoCanvas()
+//            triggerVibration()
         }
         binding.redoButton.setOnClickListener{
             currentPageLayout.redoCanvas()
@@ -1081,18 +1094,18 @@ Array to hold the Dialog buttons.
              */
 
             when(selectedChildType){
-                CustomLayout.ViewType.TEXT_VIEW->{
+                cl.ViewType.TEXT_VIEW->{
                     currentPageLayout.firstTouched=false
                     currentPageLayout.copyChild(selectedChildType)
                 }
-                CustomLayout.ViewType.IMAGE_VIEW->{
+                cl.ViewType.IMAGE_VIEW->{
                     currentPageLayout.firstTouched=false
                     currentPageLayout.copyChild(selectedChildType)
                 }
-                CustomLayout.ViewType.AUDIO->{
+                cl.ViewType.AUDIO->{
                     currentPageLayout.copyChild(selectedChildType)
                 }
-                CustomLayout.ViewType.CANVAS->{
+                cl.ViewType.CANVAS->{
                     currentPageLayout.copyChild(selectedChildType)
                 }
                 else->{
@@ -1118,12 +1131,23 @@ Array to hold the Dialog buttons.
         binding.deleteButton.setOnClickListener{
             if(isDeleteAble){
                 if (isAnyChildSelected){
-                    currentPageLayout.deleteView()
-                    it.isEnabled=false
-                    binding.TextEditingLayout.visibility=View.GONE
-                    binding.bottomButtonsLayout.visibility=View.GONE
-                    binding.mainButtonsLayout.visibility=View.VISIBLE
-                    isAnyChildSelected=false
+                  if(selectedChildType!=cl.ViewType.CANVAS){
+                      currentPageLayout.deleteView()
+                      it.isEnabled=false
+                      binding.TextEditingLayout.visibility=View.GONE
+                      binding.bottomButtonsLayout.visibility=View.GONE
+                      binding.mainButtonsLayout.visibility=View.VISIBLE
+                      isAnyChildSelected=false
+                  }
+                    else{
+                      currentPageLayout.deleteView()
+                      it.isEnabled=false
+                      binding.TextEditingLayout.visibility=View.GONE
+                      binding.bottomButtonsLayout.visibility=View.GONE
+                      binding.mainButtonsLayout.visibility=View.GONE
+                      isAnyChildSelected=false
+                      modifyDrawingLayoutParam(0)
+                  }
                 }
             }
         }
@@ -1156,49 +1180,45 @@ Array to hold the Dialog buttons.
         }
 
     }
+
+
+    private fun triggerVibration() {
+        val vibrator = requireContext().getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
+        if (vibrator != null) {
+            // Check if the device supports vibration
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // Use VibrationEffect for newer Android versions
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        500,
+                        VibrationEffect.DEFAULT_AMPLITUDE
+                    )
+                ) // 500ms vibration
+            } else {
+                // Use the old vibration method for older Android versions
+                vibrator.vibrate(500) // 500ms vibration
+            }
+        }
+    }
+
     /*
     Method to save image to local storage.
      */
-    fun saveImageToLocalStorage(contentResolver: ContentResolver, imageUri: Uri) {
-        try {
-            // Create a unique filename
+    fun saveImageToLocalStorage(imageUri: Uri):Uri {
+      val fileToDelete=File(imageUri.toString())
             val fileName = "image_${System.currentTimeMillis()}.jpg"
-
-            // Check if Android version is Q or above
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                val contentValues = ContentValues().apply {
-                    put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
-                    put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                    put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/myimages")
-                }
-
-                val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-
-                uri?.let {
-                    contentResolver.openOutputStream(it).use { outputStream ->
-                        val bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(imageUri))
-                        if (outputStream != null) {
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-                        }
-                    }
-                }
-            } else {
-                // For older Android versions, use direct file path
-                val myImagesDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "myimages")
-                if (!myImagesDir.exists()) myImagesDir.mkdirs()
-
-                val file = File(myImagesDir, fileName)
-                val bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(imageUri))
-                val outputStream: OutputStream = FileOutputStream(file)
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-                outputStream.close()
+        val inputStream=requireContext().contentResolver.openInputStream(imageUri)
+        val outputFile=File(requireContext().filesDir,"Notes" + File.separator + documentName + File.separator +typeName+File.separator+fileName)
+        inputStream.use { input ->
+            outputFile.outputStream().use { output ->
+                input?.copyTo(output)
             }
-
-            Log.d("SaveImage", "Image saved successfully to $fileName")
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Log.e("SaveImage", "Error saving image: ${e.message}")
         }
+        /*
+        Deleting the file in the ml kit folder
+         */
+        fileToDelete.delete()
+        return Uri.fromFile(outputFile) // Save this path instead of the URI
     }
 
     /*
@@ -1209,7 +1229,6 @@ Array to hold the Dialog buttons.
         // Inflate the popup layout
         val inflater = LayoutInflater.from(requireContext())
          popupView = inflater.inflate(R.layout.setlinkpopuplayoit, null)
-
         // Create a PopupWindow
          popupWindow = PopupWindow(
             popupView,
@@ -1217,7 +1236,6 @@ Array to hold the Dialog buttons.
             ViewGroup.LayoutParams.WRAP_CONTENT,
             true // Focusable
         )
-
         // Find views in the popup
         val linkNameEditText: EditText = popupView.findViewById(R.id.et_link_name)
         val linkUrlEditText: EditText = popupView.findViewById(R.id.et_link_url)
@@ -1264,22 +1282,22 @@ Array to hold the Dialog buttons.
      */
     private fun modifyPenInitialState(){
         when(currentPageLayout.getPenType()){
-            CustomCanvasView.PenType.NormalPen->{
+            ccv.PenType.NormalPen->{
                 changeDrawingButtonsState(binding.normalPen)
             }
-            CustomCanvasView.PenType.DashedPen->{
+            ccv.PenType.DashedPen->{
                 changeDrawingButtonsState(binding.dashedPen)
             }
-            CustomCanvasView.PenType.LaserPen->{
+            ccv.PenType.LaserPen->{
                 changeDrawingButtonsState(binding.laserPen)
             }
-            CustomCanvasView.PenType.LassoPen->{
+            ccv.PenType.LassoPen->{
                 changeDrawingButtonsState(binding.lasso)
             }
-            CustomCanvasView.PenType.EraserPen->{
+            ccv.PenType.EraserPen->{
                 changeDrawingButtonsState(binding.eraser)
             }
-            CustomCanvasView.PenType.HighLighterPen->{
+            ccv.PenType.HighLighterPen->{
                 changeDrawingButtonsState(binding.highlighter)
             }
             else->{
@@ -1311,14 +1329,16 @@ Array to hold the Dialog buttons.
         /*
         Variable to represent editText  file location based on the document name and pageNumber
          */
-        val editFolder:File=File(requireContext().filesDir,"Notes" + File.separator + documentName + File.separator + typeLikhoEditText)
+        val editFolder:File=File(docModel.docLocation,typeLikhoEditText)
         Log.d("beforeCoroutine", "readLikhoEditText: absolute path = ${editFolder}")
         /*
         Iterating over the folder to retrieve all the files .
          */
-        val filteredFiles = editFolder.listFiles()?.filter {
-            it.isFile && it.name.endsWith(".json") // Regex to check for a number in the filename
+        val filteredFiles = editFolder.listFiles()?.filter { file ->
+            file.isFile && file.name.endsWith(".json") && file.name.contains(pageNumber)
         }
+        totalItemViewCount+=filteredFiles!!.size
+        Log.d("JSONReader", "filtersizse = ${filteredFiles.size} and totalitemcount = ${totalItemViewCount}")
         /*
         Now Going Through Each File in the list and reading it's content.
          */
@@ -1337,19 +1357,32 @@ Array to hold the Dialog buttons.
         } else {
             Log.d("JSONReader", "No JSON files found in the folder.")
         }
-//        incrementLoadedCount()
+        incrementLoadedCount()
     }
     /*
     Helper method to read for edittext.
      */
-    private  suspend fun readForEditText(file: File,gson: Gson){
+    private suspend fun readForEditText(file: File, gson: Gson) {
         // Read each JSON file
         val content = readFileContent(file)
+
         // Optionally, parse JSON (Gson example)
-        val helperInstance = gson.fromJson(content, likhoEditSave::class.java)
-        withContext(Dispatchers.Main){
-            val editText=currentPageLayout.addTextView(100f,100f)
-            editText.getTextFromHTML(helperInstance.text)
+        val helperInstance = gson.fromJson(content, les::class.java)
+        withContext(Dispatchers.Main) {
+            if(helperInstance.text!=""){
+                val editText = currentPageLayout.addTextView(100f, 100f)
+                // Safely call getTextFromHTML with non-null text
+                editText.getTextFromHTML(helperInstance.text)
+                editText.x=helperInstance.x
+                editText.y=helperInstance.y
+                editText.rotation=helperInstance.rotationalAngle
+                editText.linkUrl=helperInstance.linkUrl
+                editText.linkName=helperInstance.linkName
+                editText.setFileName(helperInstance.fileName)
+                loadedCount++
+                incrementLoadedCount()
+            }
+
         }
     }
 
@@ -1364,13 +1397,16 @@ Variables that will be used to save the edittext .
         /*
        Variable to represent editText  file location based on the document name and pageNumber
         */
-        val imageFolder:File=File(requireContext().filesDir,"Notes" + File.separator + documentName + File.separator + typeName)
+        val imageFolder:File=File(docModel.docLocation,typeName)
         /*
         Iterating over the folder to retrieve all the files .
          */
-        val filteredFiles = imageFolder.listFiles()?.filter {
-            it.isFile && it.name.endsWith(".json") // Regex to check for a number in the filename
+        val filteredFiles = imageFolder.listFiles()?.filter { file ->
+            file.isFile && file.name.endsWith(".json") && file.name.contains(pageNumber)
         }
+        totalItemViewCount+=filteredFiles!!.size
+        Log.d("JSONReader", "filtersizse = ${filteredFiles.size} and totalitemcount = ${totalItemViewCount}")
+
         /*
         Now Going Through Each File in the list and reading it's content.
          */
@@ -1389,7 +1425,7 @@ Variables that will be used to save the edittext .
         } else {
             Log.d("JSONReader", "No JSON files found in the folder.")
         }
-//        incrementLoadedCount()
+        incrementLoadedCount()
     }
 
     /*
@@ -1400,9 +1436,19 @@ Variables that will be used to save the edittext .
         val content = readFileContent(file)
         // Optionally, parse JSON (Gson example)
 
-        val helperInstance = gson.fromJson(content, likhoImageSave::class.java)
+        val helperInstance = gson.fromJson(content, lis::class.java)
         withContext(Dispatchers.Main){
-            currentPageLayout.addImageView( Uri.parse(helperInstance.getUri()))
+           val imageview= currentPageLayout.addImageView( Uri.parse(helperInstance.getUri()))
+            imageview.x= helperInstance.getX()!!
+            imageview.y=helperInstance.getY()!!
+            imageview.rotation=helperInstance.getRotationalAngle()!!
+            imageview.setLinkUrl(helperInstance.getLinkUrl()!!)
+            imageview.setLinkName(helperInstance.getLinkName()!!)
+            imageview.setFileName(helperInstance.getFileName()!!)
+            imageview.setwidth(helperInstance.getwidth()!!)
+            imageview.setheight(helperInstance.getheight()!!)
+            loadedCount++
+            incrementLoadedCount()
 
         }
     }
@@ -1418,13 +1464,16 @@ Variables that will be used to save the edittext .
         /*
        Variable to represent editText  file location based on the document name and pageNumber
         */
-        val audioFolder:File=File(requireContext().filesDir,"Notes" + File.separator + documentName + File.separator + typeAudioName)
+        val audioFolder:File=File(docModel.docLocation, typeAudioName)
         /*
         Iterating over the folder to retrieve all the files .
          */
-        val filteredFiles = audioFolder.listFiles()?.filter {
-            it.isFile && it.name.endsWith(".json") // Regex to check for a number in the filename
+        val filteredFiles = audioFolder.listFiles()?.filter { file ->
+            file.isFile && file.name.endsWith(".json") && file.name.contains(pageNumber)
         }
+        totalItemViewCount+=filteredFiles!!.size
+        Log.d("JSONReader", "filtersizse = ${filteredFiles.size} and totalitemcount = ${totalItemViewCount}")
+
         /*
         Now Going Through Each File in the list and reading it's content.
          */
@@ -1443,7 +1492,7 @@ Variables that will be used to save the edittext .
         } else {
             Log.d("JSONReader", "No JSON files found in the folder.")
         }
-//        incrementLoadedCount()
+        incrementLoadedCount()
     }
 
     /*
@@ -1454,11 +1503,20 @@ Variables that will be used to save the edittext .
         val content = readFileContent(file)
         // Optionally, parse JSON (Gson example)
 
-        val audioHelperInstance = gson.fromJson(content, likhoAudioSave::class.java)
-        val view=WaveformWithPlayPause(requireContext(),null,0,Uri.parse(audioHelperInstance.getUri())!!)
+        val helperInstance = gson.fromJson(content, las::class.java)
+        val view=la(requireContext(),null,0,Uri.parse(helperInstance.getUri())!!)
         withContext(Dispatchers.Main){
-            view.setAudioUri(Uri.parse(audioHelperInstance.getUri()))
+            view.setAudioUri(Uri.parse(helperInstance.getUri()))
+            Log.d("audioURI", "setAudioUri: audio uri set in readaudio ${Uri.parse(helperInstance.getUri())}")
             currentPageLayout.addMusic(view)
+           view.x= helperInstance.getX()!!
+            view.y=helperInstance.getY()!!
+            view.rotation=helperInstance.getRotationalAngle()!!
+           view.setLinkUrl(helperInstance.getLinkUrl()!!)
+            view.setLinkName(helperInstance.getLinkName()!!)
+            view.setFileName(helperInstance.getFileName()!!)
+            loadedCount++
+            incrementLoadedCount()
         }
     }
 
@@ -1470,23 +1528,24 @@ Method to read and add the paths to canvas.
         /*
        Variable to represent editText  file location based on the document name and pageNumber
         */
-        val canvasFolder:File=File(requireContext().filesDir,"Notes" + File.separator + documentName + File.separator + typeCanvasName)
+        val canvasFolder:File=File(docModel.docLocation, typeCanvasName)
         Log.d("canvaspath", "readLikhoAudio: absolute path = ${canvasFolder.absolutePath}")
         /*
         Iterating over the folder to retrieve all the files .
          */
-        val filteredFiles = canvasFolder.listFiles()?.filter {
-            it.isFile && it.name.endsWith(".json") // Regex to check for a number in the filename
+        val filteredFiles = canvasFolder.listFiles()?.filter { file ->
+            file.isFile && file.name.endsWith(".json") && file.name.contains(pageNumber)
         }
-        Log.d("canvaspath", "readLikhoAudio: after filter")
+        totalItemViewCount+=filteredFiles!!.size
+        Log.d("JSONReader", "filtersizse = ${filteredFiles.size} and totalitemcount = ${totalItemViewCount}")
         /*
         Now Going Through Each File in the list and reading it's content.
          */
         val gson = GsonBuilder()
-            .registerTypeAdapter(PaintProperties::class.java, PaintPropertiesSerializer())
-            .registerTypeAdapter(PaintProperties::class.java, PaintPropertiesDeserializer())
-            .registerTypeAdapter(likhoPath::class.java, LikhoPathSerializer())
-            .registerTypeAdapter(likhoPath::class.java, LikhoPathDeserializer())
+            .registerTypeAdapter(PaintProperties::class.java, pps())
+            .registerTypeAdapter(PaintProperties::class.java, ppd())
+            .registerTypeAdapter(likhoPath::class.java, lps())
+            .registerTypeAdapter(likhoPath::class.java, lpd())
             .create()
         val canvasView=currentPageLayout.getCanvasView()
         if (filteredFiles != null && filteredFiles.isNotEmpty()) {
@@ -1503,12 +1562,12 @@ Method to read and add the paths to canvas.
         } else {
             Log.d("JSONReader", "No JSON files found in the folder.")
         }
-//        incrementLoadedCount()
+        incrementLoadedCount()
     }
     /*
     Helper method to read canvas data.
      */
-    private suspend fun readForCanvas(file:File,canvasView: CustomCanvasView,gson:Gson){
+    private suspend fun readForCanvas(file:File, canvasView: ccv, gson:Gson){
         // Read each JSON file
         val content = readFileContent(file)
         // Optionally, parse JSON (Gson example)
@@ -1520,6 +1579,8 @@ Method to read and add the paths to canvas.
         pathHelperInstance.path=canvasView.parseSVGPath(pathHelperInstance.xml)
         withContext(Dispatchers.Main){
             canvasView.addStoredPath(pathHelperInstance)
+            loadedCount++
+            incrementLoadedCount()
         }
     }
     /*
@@ -1563,11 +1624,126 @@ Method to read and add the paths to canvas.
     }
     private suspend fun incrementLoadedCount() {
         withContext(Dispatchers.Main) {
-            loadedCount++
-            if (loadedCount == 4) {
+            if (loadedCount ==totalItemViewCount) {
                 loadingDialog.dismiss()
             }
         }
     }
+    /*
+    This method will be called when the user adds a new page
+     */
+    override fun addNewPage() {
+        val secondLastIndex = pageAdapter.itemCount -1
+        pageAdapter.addFragmentAtSecondLast(PageFragment(secondLastIndex+1,false))
+       /*
+       Increasing the number of pages in the database for this specific dicument.
+        */
+        viewModel.updateNoOfPages(docModel.name,(docModel.noOfPages+1))
+
+        GlobalScope.launch {
+            delay(1500)
+        }
+        binding.LikhoPager.setCurrentItem(secondLastIndex, true)
+    }
+    /**
+     * method to modify the layout.
+     */
+    fun updateLayoutsBasedOnType(
+        currentChildType: cl.ViewType,
+        isChildSelected: Boolean,
+        isLocked: Boolean
+    ) {
+        selectedChildType = currentChildType
+        isAnyChildSelected = isChildSelected
+        Log.d("mytag", "getSelectedChild:isAnyChildSelected= $isAnyChildSelected")
+        isChildLocked = isLocked
+
+        if (isAnyChildSelected) {
+            Log.d("mytag", "getSelectedChild: $currentChildType")
+            binding.bottomButtonsLayout.visibility = View.VISIBLE
+            binding.mainButtonsLayout.visibility = View.GONE
+            binding.LikhoPager.isUserInputEnabled=false
+
+            if(selectedChildType!=cl.ViewType.TEXT_VIEW){
+                isRecognitionOn=!isRecognitionOn
+                modifyLayoutVisibility(false)
+            }
+            when (currentChildType) {
+                cl.ViewType.TEXT_VIEW -> {
+                    // For `likhoedittext`
+                    binding.TextEditingLayout.visibility = View.VISIBLE
+                    binding.mainButtonsLayout.visibility = View.GONE
+                    binding.TextEditingLayout.visibility = View.VISIBLE
+                    binding.bottomButtonsLayout.visibility = View.VISIBLE
+                    binding.drawingButtonsLayout.visibility = View.GONE
+                }
+                cl.ViewType.IMAGE_VIEW -> {
+                    // For `likhoimageview`
+                    binding.mainButtonsLayout.visibility = View.GONE
+                    binding.TextEditingLayout.visibility = View.GONE
+                    binding.bottomButtonsLayout.visibility = View.VISIBLE
+                    binding.drawingButtonsLayout.visibility = View.GONE
+                }
+                cl.ViewType.AUDIO -> {
+                    // For `likhoaudio`
+                    binding.mainButtonsLayout.visibility = View.GONE
+                    binding.TextEditingLayout.visibility = View.GONE
+                    binding.bottomButtonsLayout.visibility = View.VISIBLE
+                    binding.drawingButtonsLayout.visibility = View.GONE
+                }
+                cl.ViewType.CANVAS -> {
+                    // For `likhocanvas`
+                    binding.mainButtonsLayout.visibility = View.GONE
+                    binding.TextEditingLayout.visibility = View.GONE
+                    binding.bottomButtonsLayout.visibility = if (isChildSelected) View.VISIBLE else View.GONE
+                    binding.drawingButtonsLayout.visibility = View.VISIBLE
+                    modifyDrawingLayoutParam(153)
+                }
+                cl.ViewType.NO_SELECTED->{
+                    binding.bottomButtonsLayout.visibility =  View.GONE
+                    modifyDrawingLayoutParam(0)
+                    Log.d("no_selected", "updateLayoutsBasedOnType: bottom no_selected")
+                }
+                cl.ViewType.NONE -> TODO()
+            }
+
+            // Lock/Unlock Button Text
+            binding.lockText.text = if (isLocked) "Unlock" else "Lock"
+
+            // Enable relevant buttons
+            binding.copyButton.isEnabled = true
+            binding.deleteButton.isEnabled = true
+            isDeleteAble = true
+        } else {
+            Log.d("mytag", "getSelectedChild: no child selected")
+            // Default state when no child is selected
+            binding.bottomButtonsLayout.visibility = View.GONE
+            binding.mainButtonsLayout.visibility = View.VISIBLE
+            binding.TextEditingLayout.visibility = View.GONE
+            binding.lockText.visibility = View.VISIBLE
+            binding.childLockButton.visibility = View.VISIBLE
+            binding.mainButtonsLayout.visibility = View.VISIBLE
+            binding.TextEditingLayout.visibility = View.GONE
+            binding.drawingButtonsLayout.visibility = View.GONE
+            modifyDrawingLayoutParam(0)
+            isDeleteAble = false
+//            binding.LikhoPager.isUserInputEnabled=true
+        }
+    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val window = requireActivity().window
+        WindowCompat.setDecorFitsSystemWindows(window, true) // Reverts to default behavior
+
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+       if(currentPageLayout!=null){
+           currentPageLayout.saveCanvasPath()
+       }
+    }
+
+
 
 }

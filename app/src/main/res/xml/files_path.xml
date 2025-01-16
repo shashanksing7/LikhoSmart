@@ -1,0 +1,13 @@
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <external-path
+        name="external_files"
+        path="." />
+
+    <files-path
+        name="notes_directory"
+        path="Notes/userProfile.jpg"/>
+
+    <cache-path
+        name="cache_files"
+        path="cache/images/" />
+</paths>

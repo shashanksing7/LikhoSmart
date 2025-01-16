@@ -12,8 +12,47 @@
         tools:layout="@layout/fragment_documents" >
         <action
             android:id="@+id/action_documentsFragment_to_workShop"
-            app:destination="@id/workShop">
-        </action>
+            app:destination="@id/workShop"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
+        <action
+            android:id="@+id/action_documentsFragment_to_userProfile"
+            app:destination="@id/userProfile"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"
+            />
+        <action
+            android:id="@+id/action_documentsFragment_to_searchview"
+            app:destination="@id/searchview"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
+        <action
+            android:id="@+id/action_documentsFragment_to_smartink"
+            app:destination="@id/smartink"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
+        <action
+            android:id="@+id/action_documentsFragment_to_smartpoints"
+            app:destination="@id/smartpoints"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
+        <action
+            android:id="@+id/action_documentsFragment_to_folderFragment"
+            app:destination="@id/folderFragment"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
 
     </fragment>
     <fragment
@@ -30,7 +69,40 @@
         android:id="@+id/userProfile"
         android:name="nishkaaminnovations.com.likhosmart.HomeScreen.UserProfile.UserProfile"
         android:label="fragment_user_profile"
-        tools:layout="@layout/fragment_user_profile" />
+        tools:layout="@layout/fragment_user_profile" >
+        <action
+            android:id="@+id/action_userProfile_to_documentsFragment"
+            app:destination="@id/documentsFragment"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"
+            app:popUpTo="@id/documentsFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_userProfile_to_editUserProfile"
+            app:destination="@id/editUserProfile"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"
+            app:popUpTo="@id/editUserProfile"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_userProfile_to_changePassword"
+            app:destination="@id/changePassword"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
+        <action
+            android:id="@+id/action_userProfile_to_smartpoints"
+            app:destination="@id/smartpoints"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
+    </fragment>
     <fragment
         android:id="@+id/workShop"
         android:name="nishkaaminnovations.com.likhosmart.WorkShop.WorkShop"
@@ -40,5 +112,105 @@
             android:name="document"
             app:argType="nishkaaminnovations.com.likhosmart.DataBase.docModel"
             />
+    </fragment>
+    <fragment
+        android:id="@+id/searchview"
+        android:name="nishkaaminnovations.com.likhosmart.HomeScreen.search.searchview"
+        android:label="fragment_searchview"
+        tools:layout="@layout/fragment_searchview" >
+        <action
+            android:id="@+id/action_searchview_to_workShop2"
+            app:destination="@id/workShop"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
+    </fragment>
+    <fragment
+        android:id="@+id/smartink"
+        android:name="nishkaaminnovations.com.likhosmart.HomeScreen.smartink"
+        android:label="fragment_smartink"
+        tools:layout="@layout/fragment_smartink" >
+        <action
+            android:id="@+id/action_smartink_to_documentsFragment"
+            app:destination="@id/documentsFragment"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"
+            app:popUpTo="@id/smartink"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/editUserProfile"
+        android:name="nishkaaminnovations.com.likhosmart.HomeScreen.UserProfile.EditUserProfile"
+        android:label="fragment_edit_user_profile"
+        tools:layout="@layout/fragment_edit_user_profile" >
+        <action
+            android:id="@+id/action_editUserProfile_to_userProfile"
+            app:destination="@id/userProfile"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"
+            app:popUpTo="@id/editUserProfile"
+            app:popUpToInclusive="true"
+             />
+
+    </fragment>
+    <fragment
+        android:id="@+id/changePassword"
+        android:name="nishkaaminnovations.com.likhosmart.HomeScreen.UserProfile.changePassword"
+        android:label="changePassword" >
+        <action
+            android:id="@+id/action_changePassword_to_userProfile"
+            app:destination="@id/userProfile"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
+    </fragment>
+    <fragment
+        android:id="@+id/smartpoints"
+        android:name="nishkaaminnovations.com.likhosmart.HomeScreen.rewards.smartpoints"
+        android:label="fragment_smartpoints"
+        tools:layout="@layout/fragment_smartpoints" >
+        <action
+            android:id="@+id/action_smartpoints_to_documentsFragment"
+            app:destination="@id/documentsFragment"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
+        <action
+            android:id="@+id/action_smartpoints_to_userProfile"
+            app:destination="@id/userProfile"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
+    </fragment>
+    <fragment
+        android:id="@+id/folderFragment"
+        android:name="nishkaaminnovations.com.likhosmart.HomeScreen.Documents.FolderFragment"
+        android:label="fragment_folder"
+        tools:layout="@layout/fragment_folder" >
+        <argument
+            android:name="folderNAME"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_folderFragment_to_workShop"
+            app:destination="@id/workShop"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
+        <action
+            android:id="@+id/action_folderFragment_self"
+            app:destination="@id/folderFragment"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
     </fragment>
 </navigation>

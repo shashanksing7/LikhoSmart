@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bottomsheetdialobgbg"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="25dp"
+    >
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Complete action using"
+        android:textSize="18sp"
+        android:layout_gravity="center_horizontal"
+        android:textColor="@android:color/black"
+        android:paddingBottom="16dp" />
+
+    <!-- Horizontal container for apps -->
+    <LinearLayout
+        android:id="@+id/app_selection_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="16dp"
+        android:layout_marginBottom="50dp"
+        android:gravity="center">
+
+        <!-- Gallery App -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginVertical="8dp"
+            android:layout_marginHorizontal="50dp">
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/gallerybutton"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@drawable/gallery_svgrepo_com"
+                android:tint="@color/charcoal_black"
+                android:scaleType="fitCenter"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gallery"
+                android:textSize="14sp"
+                android:fontFamily="@font/interregular"
+                android:layout_gravity="center_horizontal"
+                android:textColor="@android:color/black" />
+        </LinearLayout>
+
+        <!-- Bitmoji App -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginVertical="8dp"
+            android:layout_marginHorizontal="50dp">
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/camerabutton"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@drawable/camera_svgrepo_com"
+                android:tint="@color/charcoal_black"
+                android:scaleType="fitCenter"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Camera"
+                android:textSize="14sp"
+                android:fontFamily="@font/interregular"
+                android:layout_gravity="center_horizontal"
+                android:textColor="@android:color/black" />
+        </LinearLayout>
+    </LinearLayout>
+
+
+    <!-- Cancel Button -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/cancel_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        android:background="@drawable/buttonbg"
+        android:textColor="@android:color/black"
+        android:textAllCaps="false"
+        android:fontFamily="@font/interregular"
+        android:foreground="?attr/selectableItemBackground"
+        android:backgroundTint="@color/appgrey"
+        />
+</LinearLayout>

@@ -13,6 +13,24 @@
     <color name="slated_gray">#83E5F7F8</color>
     <color name="soft_orange">#FF8A65</color>
     <color name="muted_blue">#64B5F6</color>
+    <color name="light_soft_teal">#78BCD1D2</color>
+    <color name="soft_red">#FCA2C1</color>
 
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#293859</color>
+    <color name="colorAccent">#D81B60</color>
+    <color name="grey">#E9EAEE</color>
+    <color name="yellow">#F8BA0F</color>
+    <color name="goodgrey">#535353</color>
+    <color name="blue">#293859</color>
+    <color name="lightgrey">#EEEEEE</color>
 
+    <color name="appgrey">#C6C6C6</color>
+<color name="applightgreen">#c0dedb</color>
+    <color name="applightpurple">#e6dff1</color>
+    <color name="applightgrey">#D7D7D7</color>
+    <color name="appyellow">#f1ede9</color>
+    <color name="appnewcolor">#FFFFFF</color>
+    <color name="new_gray">#CCCFCF</color>
+    <color name="dark_slated_gray">#83808282</color>
 </resources>

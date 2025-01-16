@@ -2,9 +2,9 @@ package nishkaaminnovations.com.likhosmart.HomeScreen
 
 enum class DocType{
     Create_New,
-    PDF_Doc,
-    Folder_Doc,
-    Image_doc
+    NoteBook,
+    Folder,
+    Image
 }
 
 enum class chipIds(val chipTYpe:String) {

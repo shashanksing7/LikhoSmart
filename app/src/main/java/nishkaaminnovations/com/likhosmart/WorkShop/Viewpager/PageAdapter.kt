@@ -18,47 +18,14 @@ class PageAdapter(activity: AppCompatActivity):FragmentStateAdapter(activity) {
         fragmentList.add(fragment)
         notifyItemInserted(fragmentList.size - 1)
     }
+    // Add a fragment dynamically at the second-to-last position
+    fun addFragmentAtSecondLast(fragment: PageFragment) {
+        // Ensure there's at least one fragment in the list
+        val insertPosition = if (fragmentList.isNotEmpty()) fragmentList.size - 1 else 0
+        // Add the new fragment at the second-to-last position
+        fragmentList.add(insertPosition, fragment)
+        // Notify the adapter about the insertion
+        notifyItemInserted(insertPosition)
+    }
 
 }
-//package nishkaaminnovations.com.likhosmart.WorkShop.Viewpager
-//
-//import androidx.fragment.app.Fragment
-//import androidx.fragment.app.FragmentManager
-//import androidx.fragment.app.FragmentStatePagerAdapter
-//
-//class PageAdapter(
-//    fragmentManager: FragmentManager
-//) : FragmentStatePagerAdapter(fragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
-//
-//    private val fragmentList = mutableListOf<Fragment>()
-//
-//    override fun getCount(): Int {
-//        return fragmentList.size
-//    }
-//
-//    override fun getItem(position: Int): Fragment {
-//        return fragmentList[position]
-//    }
-//
-//    // Add a fragment dynamically
-//    fun addFragment(fragment: Fragment) {
-//        fragmentList.add(fragment)
-//        notifyDataSetChanged() // Notify the adapter of changes
-//    }
-//
-//    // Remove a fragment dynamically
-//    fun removeFragment(position: Int) {
-//        if (position in 0 until fragmentList.size) {
-//            fragmentList.removeAt(position)
-//            notifyDataSetChanged()
-//        }
-//    }
-//
-//    // Replace a fragment at a specific position
-//    fun replaceFragment(position: Int, fragment: Fragment) {
-//        if (position in 0 until fragmentList.size) {
-//            fragmentList[position] = fragment
-//            notifyDataSetChanged()
-//        }
-//    }
-//}

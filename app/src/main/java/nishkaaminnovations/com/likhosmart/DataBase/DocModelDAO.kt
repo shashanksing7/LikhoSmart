@@ -36,12 +36,48 @@ methods to perform the operations on database.
         /*
      Method to get all the docs ordered by date.
       */
-    @Query("select * from docModel order by createdDate ASC ")
-    suspend fun getdocListByDate():List<docModel>
+    @Query("select * from docModel Where folder = :folderName order by createdDate ASC ")
+    suspend fun getdocListByDate(folderName:String=""):List<docModel>
+
+    /*
+  Method to get all the folder data.
+*/
+    @Query("SELECT * FROM docModel WHERE folder = :userFolder ORDER BY createdDate ASC")
+    suspend fun getFolderData(userFolder: String): List<docModel>
 
     /*
    Method to update the color of a specific document
 */
     @Query("UPDATE docModel SET color = :color WHERE name = :name")
    suspend fun updateDocColor(name: String, color: String)
+    /*
+    Method to update the number of pages of a specific document
+ */
+    @Query("UPDATE docModel SET noOfPages = :noOfPages WHERE name = :name")
+    suspend fun updateDocNoOfPages(name: String, noOfPages: Int)
+
+        /*
+    Method to update the name and document location.
+    */
+    @Query("UPDATE docModel SET name = :newName, docLocation = :newDocLocation WHERE name = :oldName")
+    suspend fun updateDocDetails(oldName: String, newName: String, newDocLocation: String)
+    /*
+   Method to return a list of docModels that contain the given string in their name.
+    */
+    @Query("SELECT * FROM docModel WHERE name LIKE '%' || :searchString || '%'")
+    suspend fun searchDocsByName(searchString: String): List<docModel>
+
+    /*
+  Method to get a maximum of 15 docs ordered by createdDate.
+  */
+    @Query("SELECT * FROM docModel ORDER BY createdDate DESC LIMIT 15")
+    suspend fun getTop15DocsByDate(): List<docModel>
+
+    /*
+Method to get a maximum of 15 docs ordered by createdDate.
+*/
+    @Query("SELECT * FROM docModel WHERE isSearched=1 ORDER BY createdDate DESC LIMIT 10")
+    suspend fun getTop10RecentSearchSuggestionByDate(): List<docModel>
+
+
 }

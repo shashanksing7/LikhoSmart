@@ -12,10 +12,12 @@ import kotlinx.parcelize.Parcelize
 @Entity
 @Parcelize // Using this for Parcelable implementation instead of @VersionedParcelize
 data class docModel(
-    @PrimaryKey val name: String,
+    @PrimaryKey var name: String,
     val docType: DocType,  // Ensure DocType is Parcelable or Serializable
-    val createdDate: Date = Date(), // Store date as timestamp (Long)
+    var createdDate: Date = Date(), // Store date as timestamp (Long)
     val docLocation: String = "Null",
-    val noOfPages: Int = 1,
-    val color: String = "#FFFFFF" // Default color set to white
+    var noOfPages: Int = 1,
+    var color: String = "#BCD1D2", // Default color set to white
+    var isSearched:Boolean=false,
+    var folder:String=""
 ) : Parcelable

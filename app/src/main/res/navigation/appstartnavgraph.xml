@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/appstartnavgraph"
+    app:startDestination="@id/startUpScreen">
+
+    <fragment
+        android:id="@+id/startUpScreen"
+        android:name="nishkaaminnovations.com.likhosmart.HomeScreen.StartUpScreen"
+        android:label="fragment_start_up_screen"
+        tools:layout="@layout/fragment_start_up_screen" >
+        <action
+            android:id="@+id/action_startUpScreen_to_loginscreen"
+            app:destination="@id/loginscreen"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left" />
+    </fragment>
+    <fragment
+        android:id="@+id/loginscreen"
+        android:name="nishkaaminnovations.com.likhosmart.HomeScreen.loginscreen"
+        android:label="fragment_loginscreen"
+        tools:layout="@layout/fragment_loginscreen" >
+        <action
+            android:id="@+id/action_loginscreen_to_signUpScreen"
+            app:destination="@id/signUpScreen"
+            app:enterAnim="@anim/form_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/form_right"
+            app:popExitAnim="@anim/to_left"/>
+    </fragment>
+    <fragment
+        android:id="@+id/signUpScreen"
+        android:name="nishkaaminnovations.com.likhosmart.HomeScreen.signUpScreen"
+        android:label="fragment_sign_up_screen"
+        tools:layout="@layout/fragment_sign_up_screen" />
+</navigation>

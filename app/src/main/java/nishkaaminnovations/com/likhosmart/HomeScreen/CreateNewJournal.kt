@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.WindowCompat
 import nishkaaminnovations.com.likhosmart.R
 import nishkaaminnovations.com.likhosmart.databinding.FragmentCreateNewJournalBinding
 
@@ -25,6 +26,12 @@ class CreateNewJournal : Fragment() {
         binding=FragmentCreateNewJournalBinding.inflate(inflater,container,false)
         return binding?.root
     }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
+        val window = requireActivity().window
+        WindowCompat.setDecorFitsSystemWindows(window, false) // Reverts to default behavior
+
+    }
 
 }

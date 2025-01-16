@@ -1,56 +1,330 @@
-
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/profilebghh"
     android:orientation="vertical"
-    android:padding="16dp">
+    tools:context=".HomeScreen.UserProfile.UserProfile"
+    android:weightSum="1">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:layout_weight="0.15">
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/backtodocspagebutton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/back_svgrepo_com"
+            android:background="@drawable/circleyellowfil"
+            android:backgroundTint="@color/white"
+            android:tint="@color/charcoal_black"
+            android:layout_margin="25dp"
+            android:foreground="?attr/selectableItemBackground"/>
 
-    <ImageView
-        android:id="@+id/profile_image"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_gravity="center"
-        android:src="@drawable/journal"
-        android:contentDescription="Profile Picture"
-        android:scaleType="centerCrop"
-        android:layout_marginBottom="16dp"
-        android:clipToOutline="true"
-       />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:layout_weight="0.15"
+        android:background="@drawable/profilelinearbg"
+        android:layout_marginHorizontal="20dp">
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile_image"
+            android:layout_width="0dp"
+            android:layout_height="65dp"
+            android:src="@drawable/userprofile"
+            android:layout_gravity="center"
+            android:layout_marginStart="15dp"
+            android:layout_weight="0.2"
+            />
 
-    <!-- Username -->
-    <TextView
-        android:id="@+id/username_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Username"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp"
-        android:layout_gravity="center"/>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_weight="0.6"
+            android:layout_margin="10dp"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/userprofilename"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Shashank Singh"
+                android:textSize="20dp"
+                android:textColor="@color/charcoal_black"
+                android:fontFamily="@font/interregular"
+                android:layout_gravity="center"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Edit your profile"
+                android:textSize="15dp"
+                android:textColor="@color/muted_gray"
+                android:fontFamily="@font/interregular"
+                android:layout_gravity="center"/>
 
-    <TextView
-        android:id="@+id/email_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Email :user@example.com"
-        android:textSize="16sp"
-        android:textColor="?attr/colorSecondary"
-        android:layout_marginBottom="24dp" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_weight="0.2"
+            android:gravity="center_vertical"
+            android:layout_marginEnd="10dp"
+            >
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/editProfileButton"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/edit_2_svgrepo_com"
+                android:tint="@color/white"
+                android:background="@drawable/circleyellowfil"
+                android:backgroundTint="@color/black"
+                />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:layout_weight="0.14"
+        android:layout_margin="20dp"
+        android:background="@drawable/profilelinearbg"
+        android:weightSum="1">
+        <LinearLayout
+            android:id="@+id/userprofilepasswordlayout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="0.49"
+            android:padding="10dp"
+            android:weightSum="1"
+            android:foreground="?attr/selectableItemBackground">
 
-    <Button
-        android:id="@+id/edit_profile_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Edit Profile"
-        android:layout_marginBottom="12dp"
-        android:backgroundTint="?attr/colorPrimary" />
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_weight="0.1"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/lock_keyhole_svgrepo_com" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:text="Password Settings"
+                android:textColor="@color/charcoal_black"
+                android:textSize="15dp"
+                android:layout_gravity="center"
+                android:fontFamily="@font/interregular"/>
 
-    <Button
-        android:id="@+id/logout_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Logout"
-        android:backgroundTint="@android:color/holo_red_light" />
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/userprofilepasswordbutton"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:src="@drawable/next_svgrepo_com"
+                android:tint="@color/muted_gray"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="0.1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+
+                />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1.25dp"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="15dp"
+            android:background="#D2D5D5"
+          >
+        </View>
+        <LinearLayout
+            android:id="@+id/userprofilepoints"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="0.49"
+            android:padding="10dp"
+            android:foreground="?attr/selectableItemBackground">
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_weight="0.1"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/points_1_svgrepo_com"
+                android:tint="@color/dark_slated_gray"/>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:text="Points"
+                android:textColor="@color/charcoal_black"
+                android:textSize="15dp"
+                android:layout_gravity="center"
+                android:fontFamily="@font/interregular"/>
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/userprofilepointsbutton"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:src="@drawable/next_svgrepo_com"
+                android:tint="@color/muted_gray"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="0.1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+
+                />
+        </LinearLayout>
+
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:layout_weight="0.22"
+        android:layout_margin="20dp"
+        android:background="@drawable/profilelinearbg"
+        android:weightSum="1"
+        android:foreground="?attr/selectableItemBackground">
+        <LinearLayout
+            android:id="@+id/userprofilepsupportlayout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="0.33"
+            android:padding="10dp"
+            android:weightSum="1"
+            android:foreground="?attr/selectableItemBackground">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_weight="0.1"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/support_svgrepo_com"
+                android:tint="@color/dark_slated_gray"/>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:text="FAQ/support"
+                android:textColor="@color/charcoal_black"
+                android:textSize="15dp"
+                android:layout_gravity="center"
+                android:fontFamily="@font/interregular"/>
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/userprofilesupportbutton"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_weight="0.1"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/next_svgrepo_com"
+                android:tint="@color/muted_gray"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1.25dp"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="15dp"
+            android:background="#D2D5D5"
+            >
+        </View>
+        <LinearLayout
+            android:id="@+id/userprofilereferlayout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="0.3"
+            android:padding="10dp"
+            android:weightSum="1"
+            android:foreground="?attr/selectableItemBackground">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_weight="0.1"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/refer"
+                android:tint="@color/slated_gray"/>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:text="Refer and earn"
+                android:textColor="@color/charcoal_black"
+                android:textSize="15dp"
+                android:layout_gravity="center"
+                android:fontFamily="@font/interregular"/>
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/userprofilereferbutton"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_weight="0.1"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/share_svgrepo_com"
+                android:tint="@color/muted_gray"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                />
+
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1.25dp"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="15dp"
+            android:background="#D2D5D5"
+            >
+        </View>
+        <LinearLayout
+            android:id="@+id/userprofilelogoutlayout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="0.3"
+            android:padding="10dp">
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_weight="0.1"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/logout_svgrepo_com"
+                android:tint="@color/colorAccent"/>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:text="Logout"
+                android:textColor="@color/colorAccent"
+                android:textSize="15dp"
+                android:layout_gravity="center"
+                android:fontFamily="@font/interregular"/>
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/userprofilelogoutbutton"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_weight="0.1"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/next_svgrepo_com"
+                android:tint="@color/muted_gray"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                />
+        </LinearLayout>
+
+    </LinearLayout>
+
+
 
 </LinearLayout>

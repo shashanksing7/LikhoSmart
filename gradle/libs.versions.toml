@@ -1,5 +1,11 @@
 [versions]
 agp = "8.5.1"
+androidWaveRecorder = "2.0.1"
+circleimageview = "3.1.0"
+colorpicker = "1.1.6"
+digitalInkRecognition = "18.1.0"
+fitButton = "2.0.0"
+gson = "2.10.1"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -10,12 +16,24 @@ kotlinxCoroutinesAndroid = "1.7.3"
 material = "1.12.0"
 activity = "1.9.2"
 constraintlayout = "2.1.4"
+playServicesMlkitDocumentScanner = "16.0.0-beta1"
+powerspinner = "1.2.7"
 roomRuntime = "2.6.1"
+sdkForAndroid = "6.0.0"
+toggle = "1.1.0"
+firebaseDatabaseCollection = "18.0.1"
+foundationLayoutAndroid = "1.7.6"
 
 [libraries]
+android-wave-recorder = { module = "com.github.squti:Android-Wave-Recorder", version.ref = "androidWaveRecorder" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
+colorpicker = { module = "com.github.duanhong169:colorpicker", version.ref = "colorpicker" }
+digital-ink-recognition = { module = "com.google.mlkit:digital-ink-recognition", version.ref = "digitalInkRecognition" }
+fit-button = { module = "io.github.nikartm:fit-button", version.ref = "fitButton" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -24,6 +42,12 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+play-services-mlkit-document-scanner = { module = "com.google.android.gms:play-services-mlkit-document-scanner", version.ref = "playServicesMlkitDocumentScanner" }
+powerspinner = { module = "com.github.skydoves:powerspinner", version.ref = "powerspinner" }
+sdk-for-android = { module = "io.appwrite:sdk-for-android", version.ref = "sdkForAndroid" }
+toggle = { module = "com.github.angads25:toggle", version.ref = "toggle" }
+firebase-database-collection = { group = "com.google.firebase", name = "firebase-database-collection", version.ref = "firebaseDatabaseCollection" }
+androidx-foundation-layout-android = { group = "androidx.compose.foundation", name = "foundation-layout-android", version.ref = "foundationLayoutAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

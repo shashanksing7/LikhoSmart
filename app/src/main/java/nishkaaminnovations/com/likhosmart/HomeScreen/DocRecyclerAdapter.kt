@@ -4,27 +4,35 @@ package nishkaaminnovations.com.likhosmart.HomeScreen
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.RelativeLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.cardview.widget.CardView
-import androidx.recyclerview.widget.RecyclerView
-import nishkaaminnovations.com.likhosmart.DataBase.docModel
-import nishkaaminnovations.com.likhosmart.R
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.RecyclerView
+import com.github.nikartm.button.FitButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import nishkaaminnovations.com.likhosmart.DataBase.docModel
 import nishkaaminnovations.com.likhosmart.HomeScreen.Documents.docRecyclerCallBack
+import nishkaaminnovations.com.likhosmart.R
+import top.defaults.colorpicker.ColorPickerView
+import java.io.File
 
 
 class DocRecyclerAdapter(private val documentList: MutableList<docModel>,private val docRecyclerCallBack: docRecyclerCallBack,private val context: Context):
@@ -67,6 +75,8 @@ class DocRecyclerAdapter(private val documentList: MutableList<docModel>,private
         private val createDoc=itemView.findViewById<AppCompatImageButton>(R.id.addImage)
         private val cardView=itemView.findViewById<CardView>(R.id.cardView)
         private  val relativeLayout=itemView.findViewById<RelativeLayout>(R.id.relativeLayout)
+        private val docEdit=itemView.findViewById<AppCompatImageButton>(R.id.editDoc)
+        private  val docName=itemView.findViewById<TextView>(R.id.docName)
 
         fun bind(document:docModel) {
             /*
@@ -77,23 +87,44 @@ class DocRecyclerAdapter(private val documentList: MutableList<docModel>,private
             if(document.docType==DocType.Create_New){
                 titleText.setText(document.docType.toString())
                 favoriteButton.visibility=View.GONE
+                docName.visibility=View.GONE
+                docEdit.visibility=View.GONE
 
             }
             else{
-//                val drawable = ContextCompat.getDrawable(context, R.drawable.notebook)  // Get Drawable
-//                createDoc.setImageDrawable(drawable)
+                docName.visibility=View.VISIBLE
+                docEdit.visibility=View.VISIBLE
               createDoc.isEnabled=false
                 createDoc.visibility=View.GONE
                 titleText.visibility=View.GONE
-                cardView.setBackgroundResource(R.drawable.notebook)
+                docName.text=document.name
+                when(document.docType){
+                    DocType.Create_New -> {
+                    }
+                    DocType.NoteBook -> {
+                        cardView.setBackgroundResource(R.drawable.notebookhh)
+                    }
+                    DocType.Folder ->{
+                        cardView.setBackgroundResource(R.drawable.folder)
+                    }
+                    DocType.Image -> TODO()
+                }
                 // Set the background tint list of the CardView
-                cardView.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.soft_orange))
+                val colorString = document.color // This is the hex code from your docModel
+                val parsedColor = Color.parseColor(colorString)
+                cardView.backgroundTintList = ColorStateList.valueOf(parsedColor)
                 relativeLayout.background = null
 
             }
             cardView.setOnClickListener {
                 // Handle the click event here
-                docRecyclerCallBack.openDoc(document)
+                if (document.docType!==DocType.Create_New){
+                    docRecyclerCallBack.openDoc(document)
+                }
+                else{
+                    showDialog(it)
+                }
+
             }
                 // Set favorite button click listener
                 favoriteButton.setOnClickListener { v: View? -> }
@@ -104,6 +135,9 @@ class DocRecyclerAdapter(private val documentList: MutableList<docModel>,private
                     showDialog(view)
 
                 }
+            docEdit.setOnClickListener{
+                showDocPopUp(document, favoriteButton)
+            }
         }
 
         /*
@@ -136,13 +170,14 @@ class DocRecyclerAdapter(private val documentList: MutableList<docModel>,private
                 // Handle notebook creation
 
                 dialog.dismiss()
-                showCreationDialog(it)
+                showCreationDialog(it,DocType.NoteBook)
             }
 
             folderButton.setOnClickListener {
                 // Handle folder creation
 
                 dialog.dismiss()
+                showCreationDialog(it,DocType.Folder)
             }
 
             imageButton.setOnClickListener {
@@ -160,7 +195,7 @@ class DocRecyclerAdapter(private val documentList: MutableList<docModel>,private
             // Show the dialog
             dialog.show()
         }
-        fun showCreationDialog(view: View) {
+        fun showCreationDialog(view: View,docType:DocType) {
             // Create a dialog object with a custom style
             val dialog = Dialog(view.context, R.style.CustomDialog)
 
@@ -199,7 +234,7 @@ class DocRecyclerAdapter(private val documentList: MutableList<docModel>,private
                 if (notebookName.isNotEmpty()) {
                     // Perform the notebook creation logic
                     CoroutineScope(Dispatchers.Main).launch {
-                        if(docRecyclerCallBack.canDocNameBeAssigned(notebookNameEditText.text.toString())) docRecyclerCallBack.addNewDoc(notebookNameEditText.text.toString(),DocType.PDF_Doc)
+                        if(docRecyclerCallBack.canDocNameBeAssigned(notebookNameEditText.text.toString())) docRecyclerCallBack.addNewDoc(notebookNameEditText.text.toString(),docType)
                     }
 
                     dialog.dismiss()
@@ -210,6 +245,178 @@ class DocRecyclerAdapter(private val documentList: MutableList<docModel>,private
 
             // Display the dialog
             dialog.show()
+        }
+
+        /*
+        Method to show a pop up window to edit the document .
+         */
+        fun showDocPopUp(document:docModel, anchorView: View) {
+            // Inflate the popup_layout
+            val inflater = LayoutInflater.from(context)
+            val popupView = inflater.inflate(R.layout.doceditlayout, null)
+
+            // Create PopupWindow instance
+            val popupWindow = PopupWindow(popupView,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT, true)
+
+            // Set elevation for the popup
+            popupWindow.elevation = 10f
+
+            // Find buttons inside the popup layout
+            val btnShare = popupView.findViewById<FitButton>(R.id.btn_share)
+            val btnDelete = popupView.findViewById<FitButton>(R.id.btn_delete)
+            val btnRename = popupView.findViewById<FitButton>(R.id.btn_rename)
+            val btnColor = popupView.findViewById<FitButton>(R.id.btn_color)
+
+            // Set click listeners for buttons
+            btnShare.setOnClickListener {
+                popupWindow.dismiss()
+            }
+
+            btnDelete.setOnClickListener {
+                showEditDocPopup(context,"Delete",document)
+                popupWindow.dismiss()
+            }
+
+            btnRename.setOnClickListener {
+                showEditDocPopup(context,"Rename",document)
+                popupWindow.dismiss()
+            }
+
+            btnColor.setOnClickListener {
+                popupWindow.dismiss()
+                showColorPickerPopup(document)
+            }
+
+            // Show the popup window anchored to the provided view
+            popupWindow.showAsDropDown(anchorView, 0, 0) // Adjust offset if needed
+        }
+
+
+        @SuppressLint("MissingInflatedId")
+        fun showEditDocPopup(context: Context, action:String,document: docModel) {
+            // Inflate the custom layout
+            val popupView = LayoutInflater.from(context).inflate(R.layout.newnotebooklayout, null)
+
+            // Create the PopupWindow
+            val popupWindow = PopupWindow(
+                popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true // Focusable so it handles clicks
+            )
+            popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.viewpager2))
+            // Set views and their behaviors inside the popup
+            val notebookNameEditText = popupView.findViewById<EditText>(R.id.notebook_name)
+            val cancelButton = popupView.findViewById<AppCompatButton>(R.id.cancel)
+            val confirmButton = popupView.findViewById<AppCompatButton>(R.id.confirm)
+            val titleText=popupView.findViewById<TextView>(R.id.titleText)
+
+
+            if(action=="Delete"){
+                confirmButton.text="Delete"
+                titleText.setText("Are sure you want to delete "+document.name+"?")
+                notebookNameEditText.isEnabled=false
+                notebookNameEditText.visibility=View.GONE
+            }
+            else{
+                confirmButton.text="Rename"
+                titleText.setText("Are sure you want to Rename ?")
+            }
+            cancelButton.setOnClickListener {
+                popupWindow.dismiss() // Close the popup
+            }
+
+            confirmButton.setOnClickListener {
+                val notebookName = notebookNameEditText.text.toString().trim()
+                if (notebookName.isEmpty()) {
+
+                    if(action=="Delete"){
+                        docRecyclerCallBack.deleteDoc(document)
+
+                        val file=File(document.docLocation)
+                        if (file.exists()) {
+
+                            Log.d("deleteee", "File deleteed or not =${deleteFolder(file)}.")
+                        } else {
+                            Log.d("deleteee", "File does not exist.")
+                        }
+
+                        popupWindow.dismiss()
+                    }
+
+                } else {
+                    val oldName=File(document.docLocation)
+                    val newName = File(context.filesDir, "Notes" + File.separator +notebookName)
+                    docRecyclerCallBack.updateDoc(document.name,notebookName,newName.absolutePath)
+                    oldName.renameTo(newName)
+                    popupWindow.dismiss()
+                }
+            }
+            // Show the popup window in the middle of the screen
+            val parentView = View(context) // Temporary view for the root
+            popupWindow.showAtLocation(parentView, Gravity.CENTER, 0, 0)
+        }
+        // Method to show the popup window
+        private fun showColorPickerPopup(document: docModel) {
+            // Inflate the popup layout
+            val inflater =
+                context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+            val popupView: View = inflater.inflate(R.layout.colorpickerdialog, null)
+            // Create the PopupWindow
+            val popupWindow = PopupWindow(
+                popupView,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                true
+            )
+            /*
+        Setting the color of global variable and the selected paint image button
+         */
+            var tempColor:Int=Color.BLACK
+            // Set the background of the popup
+            popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.viewpager2))
+
+            // Show the PopupWindow at the center of the screen
+            // Show the popup window in the middle of the screen
+            val parentView = View(context)
+            popupWindow.showAtLocation(parentView, Gravity.CENTER, 0, 0)
+
+            // Handle Save Button click
+            val saveButton = popupView.findViewById<Button>(R.id.saveButton)
+            saveButton.setOnClickListener { v: View? ->
+                val colorString = "#${Integer.toHexString(tempColor)}"
+                docRecyclerCallBack.updateDocColor(document.name,colorString)
+
+                popupWindow.dismiss()
+            }
+            val coloPicker=popupView.findViewById<ColorPickerView>(R.id.colorpicker)
+            coloPicker.subscribe{
+                    color,fromUser,shouldPropagate->
+                tempColor=color
+            }
+        }
+        fun deleteFolder(fileOrDirectory: File): Boolean {
+            if (fileOrDirectory.isDirectory) {
+                val children = fileOrDirectory.listFiles()
+                if (children == null) {
+                    println("Failed to list files in: ${fileOrDirectory.absolutePath}")
+                    return false
+                }
+                for (child in children) {
+                    val success = deleteFolder(child)
+                    if (!success) {
+                        println("Failed to delete: ${child.absolutePath}")
+                        return false
+                    }
+                }
+            }
+            val success = fileOrDirectory.delete()
+            if (!success) {
+                println("Failed to delete: ${fileOrDirectory.absolutePath}")
+            }
+            return success
         }
 
     }

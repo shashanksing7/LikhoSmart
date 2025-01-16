@@ -27,7 +27,14 @@
         </style>
     <style name="CustomDialog" parent="Theme.AppCompat.Light.Dialog">
         <item name="android:background">@android:color/transparent</item>
+        <item name="marginHorizontal">30dp</item>
     </style>
+
+    <style name="CircleImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
 
     <style name="WorkShopImageButtons" parent="Widget.AppCompat.ImageButton">
         <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
