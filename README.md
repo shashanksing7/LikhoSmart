@@ -1,7 +1,7 @@
 # Likho Smart - Note-Taking App
 
 ## Overview
-Likho Smart is an advanced note-taking application designed to provide users with a seamless experience in writing, organizing, and formatting notes. It includes features such as dynamic text editing, drawing capabilities, resizable views, and a live class feature for real-time teaching and learning.
+Likho Smart is an advanced note-taking application designed to provide users with a seamless experience in writing, organizing, and formatting notes. It includes features such as dynamic text editing, drawing capabilities, resizable views, and a live class feature for real-time teaching and learning. It allows you to freely draw text with your fingertips even on a small screen while holding it in your palm. Its auto-translate and zoom-in/zoom-out features eliminate the need for a stylus and a large screen to take notes. 
 
 ## Features
 - **Multi-Page Note-Taking**: Users can add and navigate between multiple pages effortlessly.
@@ -23,7 +23,7 @@ Likho Smart is an advanced note-taking application designed to provide users wit
 ### Steps
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-repository/likho-smart.git
+   git clone https://github.com/shashanksing7/LikhoSmart/
    ```
 2. Open the project in Android Studio.
 3. Sync Gradle and resolve dependencies.
