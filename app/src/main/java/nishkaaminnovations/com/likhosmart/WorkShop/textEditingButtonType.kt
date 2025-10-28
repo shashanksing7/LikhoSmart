@@ -23,5 +23,5 @@ enum class textEditingButtonType(val value:String?) {
     /*
     method to get the value variable.
      */
-    private fun getDynamicValue()=dynamicValue
+//    private fun getDynamicValue()=dynamicValue
 }
